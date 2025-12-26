@@ -1,9 +1,13 @@
-const express = require('express');
-const router = express.Router();
-const fs = require('fs');
-const path = require('path');
-const db = require('./db');
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import db from './db.js';
 
+const router = express.Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const setsDirectory = path.join(__dirname, '../data/sets');
 const exerciseSets = [];
 
@@ -50,5 +54,4 @@ router.post('/completions', (req, res) => {
     }
 });
 
-
-module.exports = router;
+export default router;

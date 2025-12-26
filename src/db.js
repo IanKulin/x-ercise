@@ -1,5 +1,9 @@
-const path = require('path');
-const Database = require('better-sqlite3');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import Database from 'better-sqlite3';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const dbPath = path.resolve(__dirname, '../data/x-ercise.db');
 const db = new Database(dbPath);
@@ -16,4 +20,4 @@ db.exec(createTable);
 
 console.log('Database initialized.');
 
-module.exports = db;
+export default db;
