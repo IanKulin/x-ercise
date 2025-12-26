@@ -20,5 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = setUserName();
     if (username) {
         welcomeMessage.textContent = `Welcome, ${username}!`;
+
+        // If the username is not in the query string, redirect
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('username') !== username) {
+            window.location.search = `?username=${encodeURIComponent(username)}`;
+        }
     }
 });

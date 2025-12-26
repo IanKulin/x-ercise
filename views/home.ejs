@@ -11,7 +11,11 @@
 <body>
     <header>
         <h1>X-ercise</h1>
-        <p id="welcome-message"></p>
+        <% if (username) { %>
+            <p>Welcome, <%= username %>!</p>
+        <% } else { %>
+            <p id="welcome-message"></p>
+        <% } %>
     </header>
     <h2>Choose Your Set</h2>
     <ul>
@@ -19,6 +23,14 @@
             <li>
                 <h3><a href="/set/<%= set.slug %>"><%= set.name %></a></h3>
                 <p><%= set.description %></p>
+                <% if (set.completions > 0) { %>
+                    <p>
+                        Completed <%= set.completions %> times.
+                        <% if (set.last_completed_at) { %>
+                            Last completed: <%= set.last_completed_at %>
+                        <% } %>
+                    </p>
+                <% } %>
             </li>
         <% }); %>
     </ul>

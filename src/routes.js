@@ -23,7 +23,32 @@ export default (logger) => {
 
     // Home page - list all sets
     router.get('/', (req, res) => {
-        res.render('home', { sets: exerciseSets });
+        const username = req.query.username;
+
+        const setsWithCompletions = exerciseSets.map(set => {
+            if (!username) {
+                return {
+                    ...set,
+                    completions: 0,
+                    last_completed_at: null
+                };
+            }
+            const stmt_count = db.prepare('SELECT COUNT(*) as count FROM completions WHERE set_slug = ? AND username = ?');
+            const result_count = stmt_count.get(set.slug, username);
+
+            const stmt_last = db.prepare('SELECT completed_at FROM completions WHERE set_slug = ? AND username = ? ORDER BY completed_at DESC LIMIT 1');
+            const result_last = stmt_last.get(set.slug, username);
+
+            return {
+                ...set,
+                completions: result_count.count,
+                last_completed_at: result_last 
+                    ? new Date(result_last.completed_at).toLocaleDateString('en-AU')
+                    : null
+            };
+        });
+
+        res.render('home', { sets: setsWithCompletions, username });
     });
 
     // Exercise runner page
