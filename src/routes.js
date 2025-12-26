@@ -38,7 +38,7 @@ export default (logger) => {
 
     // Completion endpoint
     router.post('/completions', (req, res) => {
-        const { set_slug } = req.body;
+        const { set_slug, username } = req.body;
 
         if (!set_slug) {
             return res.status(400).json({ error: 'set_slug is required' });
@@ -46,8 +46,8 @@ export default (logger) => {
 
         try {
             const completed_at = new Date().toISOString();
-            const stmt = db.prepare('INSERT INTO completions (set_slug, completed_at) VALUES (?, ?)');
-            stmt.run(set_slug, completed_at);
+            const stmt = db.prepare('INSERT INTO completions (set_slug, username, completed_at) VALUES (?, ?, ?)');
+            stmt.run(set_slug, username, completed_at);
             res.status(201).json({ success: true });
         } catch (error) {
             logger.error('Database error:', error);

@@ -14,6 +14,7 @@ const createTable = `
     CREATE TABLE IF NOT EXISTS completions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         set_slug TEXT NOT NULL,
+        username TEXT,
         completed_at TEXT NOT NULL
     );
 `;

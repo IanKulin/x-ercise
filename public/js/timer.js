@@ -78,13 +78,22 @@ document.addEventListener('DOMContentLoaded', () => {
         timerView.style.display = 'none';
         completionView.style.display = 'block';
 
+        const USERNAME_KEY = 'x-ercise-username';
+        function getUserName() {
+            return localStorage.getItem(USERNAME_KEY);
+        }
+        const username = getUserName();
+
         // POST to the completions endpoint (Phase 5)
         fetch('/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ set_slug: exerciseSet.slug }),
+            body: JSON.stringify({
+                set_slug: exerciseSet.slug,
+                username: username,
+            }),
         })
         .then(response => {
             if (!response.ok) {
