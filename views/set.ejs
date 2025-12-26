@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-ercise - <%= set.name %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <a href="/">&larr; Back to Sets</a>
+    <h1><%= set.name %></h1>
+    <p><%= set.description %></p>
+
+    <div id="exercise-container">
+        <!-- Initial view -->
+        <div id="exercise-list">
+            <h2>Exercises</h2>
+            <ul>
+                <% set.exercises.forEach(exercise => { %>
+                    <li><%= exercise.name %> (<%= exercise.duration %>s)</li>
+                <% }); %>
+            </ul>
+            <button id="start-btn">Start</button>
+        </div>
+
+        <!-- Timer view (hidden by default) -->
+        <div id="timer-view" style="display: none;">
+            <h2 id="current-exercise-name"></h2>
+            <p id="timer" class="timer-display"></p>
+        </div>
+
+        <!-- Completion view (hidden by default) -->
+        <div id="completion-view" style="display: none;">
+            <h2>Set Complete!</h2>
+            <p>Well done!</p>
+        </div>
+    </div>
+
+    <script>
+        // Pass set data to the timer script
+        const exerciseSet = <%- JSON.stringify(set) %>;
+    </script>
+    <script src="/js/timer.js"></script>
+</body>
+</html>
