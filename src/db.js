@@ -1,6 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Database from 'better-sqlite3';
+import logger from './logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +19,6 @@ const createTable = `
 `;
 db.exec(createTable);
 
-console.log('Database initialized.');
+logger.info('Database initialized.');
 
 export default db;

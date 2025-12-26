@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import logger from './logger.js';
 import routes from './routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,8 +19,8 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.json());
 
 // Set up routes
-app.use('/', routes);
+app.use('/', routes(logger));
 
 app.listen(port, () => {
-    console.log(`X-ercise app listening at http://localhost:${port}`);
+    logger.info(`X-ercise app listening at http://localhost:${port}`);
 });
