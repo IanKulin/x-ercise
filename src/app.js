@@ -21,6 +21,8 @@ app.use(express.json());
 // Set up routes
 app.use('/', routes(logger));
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
     logger.info(`X-ercise app listening at http://localhost:${port}`);
 });
+
+export { app, server };
