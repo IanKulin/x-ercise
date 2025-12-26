@@ -8,10 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentExerciseName = document.getElementById('current-exercise-name');
     const currentExerciseDescription = document.getElementById('current-exercise-description');
     const timerDisplay = document.getElementById('timer');
+    const pauseBtn = document.getElementById('pause-btn');
     let audioCtx;
 
     let currentExerciseIndex = 0;
     let timerInterval;
+    let isPaused = false;
+    let timeLeft;
 
     // --- Web Audio API Setup ---
     function initAudio() {
@@ -19,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
     }
+
 
     function beep(frequency = 440, duration = 100, volume = 0.5) {
         if (!audioCtx) return;
@@ -44,6 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
         startNextExercise();
     });
 
+    pauseBtn.addEventListener('click', () => {
+        togglePause();
+    });
+
+
     function startNextExercise() {
         if (currentExerciseIndex >= exerciseSet.exercises.length) {
             completeSet();
@@ -53,10 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const exercise = exerciseSet.exercises[currentExerciseIndex];
         currentExerciseName.textContent = exercise.name;
         currentExerciseDescription.textContent = exercise.description;
-        let timeLeft = exercise.duration;
+        timeLeft = exercise.duration;
 
         timerDisplay.textContent = timeLeft;
 
+        startTimer();
+    }
+
+    function startTimer() {
         timerInterval = setInterval(() => {
             timeLeft--;
             timerDisplay.textContent = timeLeft;
@@ -72,6 +85,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(startNextExercise, 500); // Short delay before next exercise
             }
         }, 1000);
+    }
+
+    function togglePause() {
+        isPaused = !isPaused;
+        if (isPaused) {
+            pauseTimer();
+            pauseBtn.textContent = 'Resume';
+        } else {
+            startTimer();
+            pauseBtn.textContent = 'Pause';
+        }
+    }
+
+    function pauseTimer() {
+        clearInterval(timerInterval);
     }
 
     function completeSet() {
