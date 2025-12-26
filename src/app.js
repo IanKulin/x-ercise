@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import logger from './logger.js';
 import routes from './routes.js';
+import db from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,5 +25,18 @@ app.use('/', routes(logger));
 const server = app.listen(port, () => {
     logger.info(`X-ercise app listening at http://localhost:${port}`);
 });
+
+const shutdown = () => {
+    logger.info('Shutting down server...');
+    server.close(() => {
+        logger.info('Server shut down.');
+        db.close();
+        logger.info('Database connection closed.');
+        process.exit(0);
+    });
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
 export { app, server };
