@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerView = document.getElementById('timer-view');
     const completionView = document.getElementById('completion-view');
     const currentExerciseName = document.getElementById('current-exercise-name');
+    const currentExerciseDescription = document.getElementById('current-exercise-description');
     const timerDisplay = document.getElementById('timer');
 
     let currentExerciseIndex = 0;
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const exercise = exerciseSet.exercises[currentExerciseIndex];
         currentExerciseName.textContent = exercise.name;
+        currentExerciseDescription.textContent = exercise.description;
         let timeLeft = exercise.duration;
 
         timerDisplay.textContent = timeLeft;
