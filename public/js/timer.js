@@ -4,7 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const exerciseList = document.getElementById('exercise-list');
     const timerView = document.getElementById('timer-view');
+    const confirmationView = document.getElementById('confirmation-view');
     const completionView = document.getElementById('completion-view');
+    const confirmYesBtn = document.getElementById('confirm-yes-btn');
+    const confirmNoBtn = document.getElementById('confirm-no-btn');
     const currentExerciseName = document.getElementById('current-exercise-name');
     const currentExerciseDescription = document.getElementById('current-exercise-description');
     const timerDisplay = document.getElementById('timer');
@@ -163,15 +166,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function completeSet() {
         timerView.style.display = 'none';
-        completionView.style.display = 'block';
+        confirmationView.style.display = 'block';
+    }
 
+    function recordCompletion() {
         const USERNAME_KEY = 'x-ercise-username';
         function getUserName() {
             return localStorage.getItem(USERNAME_KEY);
         }
         const username = getUserName();
 
-        // POST to the completions endpoint (Phase 5)
+        // POST to the completions endpoint
         fetch('/completions', {
             method: 'POST',
             headers: {
@@ -191,4 +196,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error recording completion:', error);
         });
     }
+
+    confirmYesBtn.addEventListener('click', () => {
+        recordCompletion();
+        confirmationView.style.display = 'none';
+        completionView.style.display = 'block';
+    });
+
+    confirmNoBtn.addEventListener('click', () => {
+        confirmationView.style.display = 'none';
+        completionView.style.display = 'block';
+    });
 });

@@ -35,6 +35,16 @@
             <button id="pause-btn">Pause</button>
         </div>
 
+        <!-- Confirmation view (hidden by default) -->
+        <div id="confirmation-view" style="display: none;">
+            <h2>Did you complete this set?</h2>
+            <p>Please confirm if you finished all exercises.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                <button id="confirm-yes-btn" style="background-color: #28a745; padding: 0.75rem 2rem;">Yes, I completed it</button>
+                <button id="confirm-no-btn" style="background-color: #dc3545; padding: 0.75rem 2rem;">No, I didn't finish</button>
+            </div>
+        </div>
+
         <!-- Completion view (hidden by default) -->
         <div id="completion-view" style="display: none;">
             <h2>Set Complete!</h2>
