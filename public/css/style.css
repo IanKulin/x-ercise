@@ -39,3 +39,27 @@ li {
     margin: 0.5em 0;
 }
 
+/* Exercise image styling */
+#exercise-image-container {
+    margin: 1em auto;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#exercise-image {
+    max-width: 100%;
+    max-height: 300px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    object-fit: contain;
+}
+
+@media (max-width: 600px) {
+    #exercise-image {
+        max-height: 200px;
+    }
+}
+

@@ -25,25 +25,42 @@ export default (logger) => {
     router.get('/', (req, res) => {
         const username = req.query.username;
 
-        const setsWithCompletions = exerciseSets.map(set => {
-            if (!username) {
-                return {
-                    ...set,
-                    completions: 0,
-                    last_completed_at: null
-                };
-            }
-            const stmt_count = db.prepare('SELECT COUNT(*) as count FROM completions WHERE set_slug = ? AND username = ?');
-            const result_count = stmt_count.get(set.slug, username);
+        // Handle unauthenticated users early
+        if (!username) {
+            const setsWithCompletions = exerciseSets.map(set => ({
+                ...set,
+                completions: 0,
+                last_completed_at: null
+            }));
+            return res.render('home', { sets: setsWithCompletions, username });
+        }
 
-            const stmt_last = db.prepare('SELECT completed_at FROM completions WHERE set_slug = ? AND username = ? ORDER BY completed_at DESC LIMIT 1');
-            const result_last = stmt_last.get(set.slug, username);
+        // Execute single aggregated query to fetch all completion data
+        const stmt = db.prepare(`
+            SELECT
+                set_slug,
+                COUNT(*) as completions,
+                MAX(completed_at) as last_completed_at
+            FROM completions
+            WHERE username = ?
+            GROUP BY set_slug
+        `);
+        const completionData = stmt.all(username);
+
+        // Build lookup map for O(1) access during set mapping
+        const completionsMap = new Map(
+            completionData.map(row => [row.set_slug, row])
+        );
+
+        // Map over exercise sets and enrich with completion data
+        const setsWithCompletions = exerciseSets.map(set => {
+            const completion = completionsMap.get(set.slug);
 
             return {
                 ...set,
-                completions: result_count.count,
-                last_completed_at: result_last 
-                    ? new Date(result_last.completed_at).toLocaleDateString('en-AU')
+                completions: completion ? completion.completions : 0,
+                last_completed_at: completion && completion.last_completed_at
+                    ? new Date(completion.last_completed_at).toLocaleDateString('en-AU')
                     : null
             };
         });

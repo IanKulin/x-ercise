@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentExerciseDescription = document.getElementById('current-exercise-description');
     const timerDisplay = document.getElementById('timer');
     const pauseBtn = document.getElementById('pause-btn');
+    const exerciseImageContainer = document.getElementById('exercise-image-container');
+    const exerciseImage = document.getElementById('exercise-image');
     let audioCtx;
 
     let currentExerciseIndex = 0;
@@ -41,6 +43,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // --- End Web Audio API Setup ---
 
+    // --- Image Loading ---
+    const imageCache = new Map();
+    const supportedFormats = ['webp', 'jpg', 'png', 'gif'];
+
+    function loadExerciseImage(slug) {
+        if (!slug) return Promise.resolve(null);
+        if (imageCache.has(slug)) return Promise.resolve(imageCache.get(slug));
+
+        return new Promise((resolve) => {
+            let formatIndex = 0;
+            function tryNextFormat() {
+                if (formatIndex >= supportedFormats.length) {
+                    imageCache.set(slug, null);
+                    resolve(null);
+                    return;
+                }
+                const format = supportedFormats[formatIndex];
+                const imagePath = `/images/exercises/${slug}.${format}`;
+                const img = new Image();
+                img.onload = () => {
+                    imageCache.set(slug, imagePath);
+                    resolve(imagePath);
+                };
+                img.onerror = () => {
+                    formatIndex++;
+                    tryNextFormat();
+                };
+                img.src = imagePath;
+            }
+            tryNextFormat();
+        });
+    }
+
+    function preloadExerciseImages() {
+        exerciseSet.exercises.forEach(exercise => {
+            if (exercise.imageSlug) loadExerciseImage(exercise.imageSlug);
+        });
+    }
+
+    // Preload images when page loads
+    preloadExerciseImages();
+    // --- End Image Loading ---
+
     startBtn.addEventListener('click', () => {
         initAudio(); // Initialize audio on user interaction
         exerciseList.style.display = 'none';
@@ -65,6 +110,20 @@ document.addEventListener('DOMContentLoaded', () => {
         timeLeft = exercise.duration;
 
         timerDisplay.textContent = timeLeft;
+
+        // Handle exercise image
+        if (exercise.imageSlug) {
+            loadExerciseImage(exercise.imageSlug).then(imagePath => {
+                if (imagePath) {
+                    exerciseImage.src = imagePath;
+                    exerciseImageContainer.style.display = 'block';
+                } else {
+                    exerciseImageContainer.style.display = 'none';
+                }
+            });
+        } else {
+            exerciseImageContainer.style.display = 'none';
+        }
 
         startTimer();
     }

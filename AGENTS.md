@@ -38,3 +38,7 @@ This document provides instructions for AI agents working on the `x-ercise` code
 ## Testing
 
 Using the Node built in test runner
+
+## Guardrails
+
+- You must not run any git commands
