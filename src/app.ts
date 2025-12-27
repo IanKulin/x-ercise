@@ -1,14 +1,15 @@
-import express from 'express';
+import express, { type Express } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import logger from './logger.js';
-import routes from './routes.js';
-import db from './db.js';
+import type { Server } from 'http';
+import logger from './logger.ts';
+import routes from './routes.ts';
+import db from './db.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
+const app: Express = express();
 const port = 3000;
 
 // Set up EJS
@@ -22,11 +23,11 @@ app.use(express.json());
 // Set up routes
 app.use('/', routes(logger));
 
-const server = app.listen(port, () => {
+const server: Server = app.listen(port, () => {
     logger.info(`X-ercise app listening at http://localhost:${port}`);
 });
 
-server.on('error', (err) => {
+server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE') {
         logger.error(`Port ${port} is already in use. Another instance may be running.`);
         logger.error(`Run "lsof -i :${port}" to find the process, or "pkill -f 'node src/app.js'" to kill it.`);
@@ -37,7 +38,7 @@ server.on('error', (err) => {
     }
 });
 
-const shutdown = () => {
+const shutdown = (): void => {
     logger.info('Shutting down server...');
     server.close(() => {
         logger.info('Server shut down.');

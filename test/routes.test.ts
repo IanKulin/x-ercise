@@ -1,7 +1,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert';
-import { app, server } from '../src/app.js';
-import db from '../src/db.js';
+import { app, server } from '../src/app.ts';
+import db from '../src/db.ts';
 
 describe('API Tests', () => {
 

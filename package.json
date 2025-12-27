@@ -4,8 +4,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node src/app.js",
-    "test": "node --test"
+    "start": "node --experimental-strip-types src/app.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test test/**/*.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +17,12 @@
     "better-sqlite3": "^12.5.0",
     "ejs": "^3.1.10",
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.3",
+    "typescript": "^5.9.3"
   }
 }
