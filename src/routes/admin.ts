@@ -142,11 +142,11 @@ export default (logger: Logger): Router => {
   // Create new set
   router.post("/sets", (req: Request, res: Response) => {
     try {
-      const { name, slug, description, exercises } = req.body as CreateSetRequest;
+      const { name, slug, exercises } = req.body as CreateSetRequest;
 
       // Validation
-      if (!name || !slug || !description) {
-        return res.status(400).json({ error: "Name, slug, and description are required" });
+      if (!name || !slug) {
+        return res.status(400).json({ error: "Name and slug are required" });
       }
 
       if (!isValidSlug(slug)) {
@@ -188,7 +188,7 @@ export default (logger: Logger): Router => {
         VALUES (?, ?, ?, ?, ?)
       `);
 
-      const setResult = setStmt.run(name, slug, description, timestamp, timestamp);
+      const setResult = setStmt.run(name, slug, "", timestamp, timestamp);
       const setId = setResult.lastInsertRowid as number;
 
       // Insert exercises
@@ -230,11 +230,11 @@ export default (logger: Logger): Router => {
   router.put("/sets/:id", (req: Request, res: Response) => {
     try {
       const setId = parseInt(req.params.id);
-      const { name, slug, description, exercises } = req.body as CreateSetRequest;
+      const { name, slug, exercises } = req.body as CreateSetRequest;
 
       // Validation (same as create)
-      if (!name || !slug || !description) {
-        return res.status(400).json({ error: "Name, slug, and description are required" });
+      if (!name || !slug) {
+        return res.status(400).json({ error: "Name and slug are required" });
       }
 
       if (!isValidSlug(slug)) {
@@ -283,7 +283,7 @@ export default (logger: Logger): Router => {
         SET name = ?, slug = ?, description = ?, updated_at = ?
         WHERE id = ?
       `);
-      updateSetStmt.run(name, slug, description, timestamp, setId);
+      updateSetStmt.run(name, slug, "", timestamp, setId);
 
       // Get existing exercises to handle image cleanup
       const existingExercisesStmt = db.prepare("SELECT image_slug FROM exercises WHERE set_id = ?");

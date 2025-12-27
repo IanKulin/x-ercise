@@ -216,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const formData = {
       name: document.getElementById('name').value,
       slug: document.getElementById('slug').value,
-      description: document.getElementById('description').value,
       exercises: [],
     };
 

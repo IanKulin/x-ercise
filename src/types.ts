@@ -8,7 +8,6 @@ export interface Exercise {
 export interface ExerciseSet {
   name: string;
   slug: string;
-  description: string;
   exercises: Exercise[];
 }
 
@@ -72,7 +71,6 @@ export interface ExerciseSetWithExercises extends ExerciseSetRow {
 export interface CreateSetRequest {
   name: string;
   slug: string;
-  description: string;
   exercises: {
     name: string;
     imageSlug: string;

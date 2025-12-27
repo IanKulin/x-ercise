@@ -36,7 +36,6 @@ export default (logger: Logger): Router => {
       const exerciseSets: ExerciseSet[] = setsData.map((setRow) => ({
         name: setRow.name,
         slug: setRow.slug,
-        description: setRow.description,
         exercises: [], // We don't need full exercises for home page
       }));
 
@@ -119,7 +118,6 @@ export default (logger: Logger): Router => {
       const set: ExerciseSet = {
         name: setRow.name,
         slug: setRow.slug,
-        description: setRow.description,
         exercises: exerciseRows.map((ex) => ({
           name: ex.name,
           imageSlug: ex.image_slug || "",
