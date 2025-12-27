@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X-ercise - <%= set.name %></title>
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/dark.css" media="(prefers-color-scheme: dark)">
 </head>
 <body>
     <a href="/">&larr; Back to Sets</a>
@@ -25,9 +24,9 @@
         </div>
 
         <!-- Timer view (hidden by default) -->
-        <div id="timer-view" style="display: none;">
+        <div id="timer-view" class="hidden">
             <h2 id="current-exercise-name"></h2>
-            <div id="exercise-image-container" style="display: none;">
+            <div id="exercise-image-container" class="hidden">
                 <img id="exercise-image" alt="Exercise demonstration" />
             </div>
             <p id="current-exercise-description"></p>
@@ -36,17 +35,17 @@
         </div>
 
         <!-- Confirmation view (hidden by default) -->
-        <div id="confirmation-view" style="display: none;">
+        <div id="confirmation-view" class="hidden">
             <h2>Did you complete this set?</h2>
             <p>Please confirm if you finished all exercises.</p>
-            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
-                <button id="confirm-yes-btn" style="background-color: #28a745; padding: 0.75rem 2rem;">Yes, I completed it</button>
-                <button id="confirm-no-btn" style="background-color: #dc3545; padding: 0.75rem 2rem;">No, I didn't finish</button>
+            <div class="flex-center">
+                <button id="confirm-yes-btn" class="btn btn-success">Yes, I completed it</button>
+                <button id="confirm-no-btn" class="btn btn-danger">No, I didn't finish</button>
             </div>
         </div>
 
         <!-- Completion view (hidden by default) -->
-        <div id="completion-view" style="display: none;">
+        <div id="completion-view" class="hidden">
             <h2>Set Complete!</h2>
             <p>Well done!</p>
         </div>
