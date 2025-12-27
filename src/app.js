@@ -26,6 +26,17 @@ const server = app.listen(port, () => {
     logger.info(`X-ercise app listening at http://localhost:${port}`);
 });
 
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        logger.error(`Port ${port} is already in use. Another instance may be running.`);
+        logger.error(`Run "lsof -i :${port}" to find the process, or "pkill -f 'node src/app.js'" to kill it.`);
+        process.exit(1);
+    } else {
+        logger.error('Server error:', err);
+        process.exit(1);
+    }
+});
+
 const shutdown = () => {
     logger.info('Shutting down server...');
     server.close(() => {
