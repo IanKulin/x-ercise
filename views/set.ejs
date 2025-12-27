@@ -1,67 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>X-ercise - <%= set.name %></title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
     <a href="/">&larr; Back to Sets</a>
     <h1><%= set.name %></h1>
     <p><%= set.description %></p>
 
     <div id="exercise-container">
-        <!-- Initial view -->
-        <div id="exercise-list">
-            <h2>Exercises</h2>
-            <ul>
-                <% set.exercises.forEach(exercise => { %>
-                    <li><%= exercise.name %> (<%= exercise.duration %>s)</li>
-                <% }); %>
-            </ul>
-            <button id="start-btn">Start</button>
-        </div>
+      <!-- Initial view -->
+      <div id="exercise-list">
+        <h2>Exercises</h2>
+        <ul>
+          <% set.exercises.forEach(exercise => { %>
+          <li><%= exercise.name %> (<%= exercise.duration %>s)</li>
+          <% }); %>
+        </ul>
+        <button id="start-btn">Start</button>
+      </div>
 
-        <!-- Timer view (hidden by default) -->
-        <div id="timer-view" class="hidden">
-            <h2 id="current-exercise-name"></h2>
-            <div id="exercise-image-container" class="hidden">
-                <img id="exercise-image" alt="Exercise demonstration" />
-            </div>
-            <p id="current-exercise-description"></p>
-            <p id="timer" class="timer-display"></p>
-            <button id="pause-btn">Pause</button>
+      <!-- Timer view (hidden by default) -->
+      <div id="timer-view" class="hidden">
+        <h2 id="current-exercise-name"></h2>
+        <div id="exercise-image-container" class="hidden">
+          <img id="exercise-image" alt="Exercise demonstration" />
         </div>
+        <p id="current-exercise-description"></p>
+        <p id="timer" class="timer-display"></p>
+        <button id="pause-btn">Pause</button>
+      </div>
 
-        <!-- Confirmation view (hidden by default) -->
-        <div id="confirmation-view" class="hidden">
-            <h2>Did you complete this set?</h2>
-            <p>Please confirm if you finished all exercises.</p>
-            <div class="flex-center">
-                <button id="confirm-yes-btn" class="btn btn-success">Yes, I completed it</button>
-                <button id="confirm-no-btn" class="btn btn-danger">No, I didn't finish</button>
-            </div>
+      <!-- Confirmation view (hidden by default) -->
+      <div id="confirmation-view" class="hidden">
+        <h2>Did you complete this set?</h2>
+        <p>Please confirm if you finished all exercises.</p>
+        <div class="flex-center">
+          <button id="confirm-yes-btn" class="btn btn-success">
+            Yes, I completed it
+          </button>
+          <button id="confirm-no-btn" class="btn btn-danger">
+            No, I didn't finish
+          </button>
         </div>
+      </div>
 
-        <!-- Completion view (hidden by default) -->
-        <div id="completion-view" class="hidden">
-            <h2>Set Complete!</h2>
-            <p>Well done!</p>
-        </div>
+      <!-- Completion view (hidden by default) -->
+      <div id="completion-view" class="hidden">
+        <h2>Set Complete!</h2>
+        <p>Well done!</p>
+      </div>
 
-        <!-- Cancellation view (hidden by default) -->
-        <div id="cancellation-view" class="hidden">
-            <h2>No problem!</h2>
-            <p>Thanks for giving it a try. Come back when you're ready!</p>
-            <a href="/" class="btn">Back to Sets</a>
-        </div>
+      <!-- Cancellation view (hidden by default) -->
+      <div id="cancellation-view" class="hidden">
+        <h2>No problem!</h2>
+        <p>Thanks for giving it a try. Come back when you're ready!</p>
+        <a href="/" class="btn">Back to Sets</a>
+      </div>
     </div>
 
     <script>
-        // Pass set data to the timer script
-        const exerciseSet = <%- JSON.stringify(set) %>;
+      // Pass set data to the timer script
+      const exerciseSet = <%- JSON.stringify(set) %>;
     </script>
     <script src="/js/timer.js"></script>
-</body>
+  </body>
 </html>

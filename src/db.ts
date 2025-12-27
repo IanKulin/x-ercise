@@ -1,12 +1,12 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import Database from 'better-sqlite3';
-import logger from './logger.ts';
+import path from "path";
+import { fileURLToPath } from "url";
+import Database from "better-sqlite3";
+import logger from "./logger.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.resolve(__dirname, '../data/x-ercise.db');
+const dbPath = path.resolve(__dirname, "../data/x-ercise.db");
 const db = new Database(dbPath);
 
 // Create the 'completions' table if it doesn't exist
@@ -20,6 +20,6 @@ const createTable = `
 `;
 db.exec(createTable);
 
-logger.info('Database initialized.');
+logger.info("Database initialized.");
 
 export default db;

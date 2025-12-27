@@ -1,5 +1,5 @@
-import Logger from '@iankulin/logger';
+import Logger from "@iankulin/logger";
 
-const logger = new Logger({ format: 'simple' });
+const logger = new Logger({ format: "simple" });
 
 export default logger;
