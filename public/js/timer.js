@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerView = document.getElementById('timer-view');
     const confirmationView = document.getElementById('confirmation-view');
     const completionView = document.getElementById('completion-view');
+    const cancellationView = document.getElementById('cancellation-view');
     const confirmYesBtn = document.getElementById('confirm-yes-btn');
     const confirmNoBtn = document.getElementById('confirm-no-btn');
     const currentExerciseName = document.getElementById('current-exercise-name');
@@ -205,6 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirmNoBtn.addEventListener('click', () => {
         confirmationView.style.display = 'none';
-        completionView.style.display = 'block';
+        cancellationView.style.display = 'block';
     });
 });
