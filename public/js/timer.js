@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   const timerDisplay = document.getElementById("timer");
   const pauseBtn = document.getElementById("pause-btn");
+  const cancelBtn = document.getElementById("cancel-btn");
   const exerciseImageContainer = document.getElementById(
     "exercise-image-container",
   );
@@ -104,6 +105,10 @@ document.addEventListener("DOMContentLoaded", () => {
     togglePause();
   });
 
+  cancelBtn.addEventListener("click", () => {
+    cancelSet();
+  });
+
   function startNextExercise() {
     if (currentExerciseIndex >= exerciseSet.exercises.length) {
       completeSet();
@@ -165,6 +170,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function pauseTimer() {
     clearInterval(timerInterval);
+  }
+
+  function cancelSet() {
+    clearInterval(timerInterval);
+    timerView.style.display = "none";
+    cancellationView.style.display = "block";
   }
 
   function completeSet() {

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= mode === 'create' ? 'Create' : 'Edit' %> Exercise Set - X-ercise</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="container">
+        <header class="admin-header">
+            <h1><%= mode === 'create' ? 'Create' : 'Edit' %> Exercise Set</h1>
+            <div class="admin-actions">
+                <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
+            </div>
+        </header>
+
+        <main class="admin-main">
+            <form id="setForm" class="set-form">
+                <div class="form-section">
+                    <h2>Set Details</h2>
+
+                    <div class="form-group">
+                        <label for="name">Set Name *</label>
+                        <input type="text" id="name" name="name" required
+                               value="<%= set ? set.name : '' %>"
+                               placeholder="e.g., Morning Warm-up">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slug">Slug *</label>
+                        <input type="text" id="slug" name="slug" required
+                               pattern="[a-z0-9-]+"
+                               value="<%= set ? set.slug : '' %>"
+                               placeholder="e.g., morning-warm-up">
+                        <small>URL-friendly identifier (lowercase, numbers, hyphens only)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description *</label>
+                        <textarea id="description" name="description" required
+                                  rows="3"><%= set ? set.description : '' %></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Exercises</h2>
+
+                    <div id="exercisesList">
+                        <% if (set && set.exercises && set.exercises.length > 0) { %>
+                            <% set.exercises.forEach((exercise, index) => { %>
+                                <div class="exercise-item" data-position="<%= index %>">
+                                    <div class="exercise-header">
+                                        <span class="drag-handle">☰</span>
+                                        <span class="exercise-number">Exercise <%= index + 1 %></span>
+                                        <button type="button" class="btn btn-small btn-danger" onclick="removeExercise(this)">Remove</button>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Exercise Name *</label>
+                                        <input type="text" name="exerciseName" required
+                                               value="<%= exercise.name %>"
+                                               placeholder="e.g., Jumping Jacks">
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Duration (seconds) *</label>
+                                            <input type="number" name="exerciseDuration" required
+                                                   min="1" max="3600"
+                                                   value="<%= exercise.duration %>">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Image Slug</label>
+                                            <input type="text" name="exerciseImageSlug"
+                                                   pattern="[a-z0-9-_]+"
+                                                   value="<%= exercise.image_slug || '' %>"
+                                                   placeholder="e.g., jumping-jacks">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Description *</label>
+                                        <textarea name="exerciseDescription" required
+                                                  rows="2"><%= exercise.description %></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Image Upload</label>
+                                        <input type="file" name="exerciseImage" accept="image/*"
+                                               onchange="handleImageUpload(this)">
+                                        <% if (exercise.image_slug) { %>
+                                            <div class="image-preview">
+                                                <img src="/images/exercises/<%= exercise.image_slug %>.jpg"
+                                                     alt="<%= exercise.name %>"
+                                                     onerror="this.src='/images/exercises/<%= exercise.image_slug %>.png'; this.onerror=null;">
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" onclick="addExercise()">+ Add Exercise</button>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <%= mode === 'create' ? 'Create Set' : 'Update Set' %>
+                    </button>
+                    <a href="/admin" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script src="/js/admin.js"></script>
+    <script>
+        // Initialize form with set ID if editing
+        <% if (set && mode === 'edit') { %>
+            window.editingSetId = <%= set.id %>;
+        <% } %>
+
+        // Auto-generate slug from name
+        document.getElementById('name').addEventListener('input', function(e) {
+            const slugInput = document.getElementById('slug');
+            // Only auto-fill if slug is empty or in create mode
+            if (!slugInput.value || '<%= mode %>' === 'create') {
+                slugInput.value = e.target.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,4 @@
 import express, { type Request, type Response, type Router } from "express";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import db from "./db.ts";
 import type {
   Logger,
@@ -9,86 +6,132 @@ import type {
   CompletionData,
   SetWithCompletions,
   CompletionRequestBody,
+  ExerciseSetRow,
+  ExerciseRow,
 } from "./types.ts";
 
 export default (logger: Logger): Router => {
   const router = express.Router();
 
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const setsDirectory = path.join(__dirname, "../data/sets");
-  const exerciseSets: ExerciseSet[] = [];
-
-  // Pre-load exercise sets on startup
-  fs.readdirSync(setsDirectory).forEach((file) => {
-    if (path.extname(file) === ".json") {
-      const filePath = path.join(setsDirectory, file);
-      const fileContent = fs.readFileSync(filePath, "utf8");
-      exerciseSets.push(JSON.parse(fileContent) as ExerciseSet);
-    }
-  });
-
   // Home page - list all sets
   router.get("/", (req: Request, res: Response) => {
     const username = req.query.username as string | undefined;
 
-    // Handle unauthenticated users early
-    if (!username) {
-      const setsWithCompletions: SetWithCompletions[] = exerciseSets.map(
-        (set) => ({
-          ...set,
-          completions: 0,
-          last_completed_at: null,
-        }),
+    try {
+      // Fetch all sets from database with exercise count
+      const setsStmt = db.prepare(`
+        SELECT
+          s.*,
+          COUNT(e.id) as exercise_count
+        FROM exercise_sets s
+        LEFT JOIN exercises e ON s.id = e.set_id
+        GROUP BY s.id
+        ORDER BY s.created_at DESC
+      `);
+      const setsData = setsStmt.all() as (ExerciseSetRow & {
+        exercise_count: number;
+      })[];
+
+      // Transform to ExerciseSet format (without loading all exercises)
+      const exerciseSets: ExerciseSet[] = setsData.map((setRow) => ({
+        name: setRow.name,
+        slug: setRow.slug,
+        description: setRow.description,
+        exercises: [], // We don't need full exercises for home page
+      }));
+
+      // Handle unauthenticated users early
+      if (!username) {
+        const setsWithCompletions: SetWithCompletions[] = exerciseSets.map(
+          (set) => ({
+            ...set,
+            completions: 0,
+            last_completed_at: null,
+          }),
+        );
+        return res.render("home", { sets: setsWithCompletions, username });
+      }
+
+      // Execute single aggregated query to fetch all completion data
+      const stmt = db.prepare(`
+        SELECT
+          set_slug,
+          COUNT(*) as completions,
+          MAX(completed_at) as last_completed_at
+        FROM completions
+        WHERE username = ?
+        GROUP BY set_slug
+      `);
+      const completionData = stmt.all(username) as CompletionData[];
+
+      // Build lookup map for O(1) access during set mapping
+      const completionsMap = new Map<string, CompletionData>(
+        completionData.map((row) => [row.set_slug, row]),
       );
-      return res.render("home", { sets: setsWithCompletions, username });
+
+      // Map over exercise sets and enrich with completion data
+      const setsWithCompletions: SetWithCompletions[] = exerciseSets.map(
+        (set) => {
+          const completion = completionsMap.get(set.slug);
+
+          return {
+            ...set,
+            completions: completion ? completion.completions : 0,
+            last_completed_at:
+              completion && completion.last_completed_at
+                ? new Date(completion.last_completed_at).toLocaleDateString(
+                    "en-AU",
+                  )
+                : null,
+          };
+        },
+      );
+
+      res.render("home", { sets: setsWithCompletions, username });
+    } catch (error) {
+      logger.error("Error loading home page:", error);
+      res.status(500).send("Error loading exercise sets");
     }
-
-    // Execute single aggregated query to fetch all completion data
-    const stmt = db.prepare(`
-            SELECT
-                set_slug,
-                COUNT(*) as completions,
-                MAX(completed_at) as last_completed_at
-            FROM completions
-            WHERE username = ?
-            GROUP BY set_slug
-        `);
-    const completionData = stmt.all(username) as CompletionData[];
-
-    // Build lookup map for O(1) access during set mapping
-    const completionsMap = new Map<string, CompletionData>(
-      completionData.map((row) => [row.set_slug, row]),
-    );
-
-    // Map over exercise sets and enrich with completion data
-    const setsWithCompletions: SetWithCompletions[] = exerciseSets.map(
-      (set) => {
-        const completion = completionsMap.get(set.slug);
-
-        return {
-          ...set,
-          completions: completion ? completion.completions : 0,
-          last_completed_at:
-            completion && completion.last_completed_at
-              ? new Date(completion.last_completed_at).toLocaleDateString(
-                  "en-AU",
-                )
-              : null,
-        };
-      },
-    );
-
-    res.render("home", { sets: setsWithCompletions, username });
   });
 
   // Exercise runner page
   router.get("/set/:slug", (req: Request, res: Response) => {
-    const set = exerciseSets.find((s) => s.slug === req.params.slug);
-    if (set) {
+    try {
+      // Fetch set by slug
+      const setStmt = db.prepare("SELECT * FROM exercise_sets WHERE slug = ?");
+      const setRow = setStmt.get(req.params.slug) as
+        | ExerciseSetRow
+        | undefined;
+
+      if (!setRow) {
+        return res.status(404).send("Set not found");
+      }
+
+      // Fetch exercises for this set
+      const exercisesStmt = db.prepare(`
+        SELECT * FROM exercises
+        WHERE set_id = ?
+        ORDER BY position ASC
+      `);
+      const exerciseRows = exercisesStmt.all(setRow.id) as ExerciseRow[];
+
+      // Transform to ExerciseSet interface for compatibility with template
+      const set: ExerciseSet = {
+        name: setRow.name,
+        slug: setRow.slug,
+        description: setRow.description,
+        exercises: exerciseRows.map((ex) => ({
+          name: ex.name,
+          imageSlug: ex.image_slug || "",
+          duration: ex.duration,
+          description: ex.description,
+        })),
+      };
+
       res.render("set", { set });
-    } else {
-      res.status(404).send("Set not found");
+    } catch (error) {
+      logger.error("Error loading set:", error);
+      res.status(500).send("Error loading exercise set");
     }
   });
 

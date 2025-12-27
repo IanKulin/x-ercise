@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - X-ercise</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="container">
+        <header class="admin-header">
+            <h1>X-ercise Admin</h1>
+            <div class="admin-actions">
+                <a href="/" class="btn btn-secondary">← Back to Home</a>
+                <a href="/admin/sets/new" class="btn btn-primary">+ Create New Set</a>
+            </div>
+        </header>
+
+        <main class="admin-main">
+            <% if (sets.length === 0) { %>
+                <div class="empty-state">
+                    <p>No exercise sets found.</p>
+                    <a href="/admin/sets/new" class="btn btn-primary">Create Your First Set</a>
+                </div>
+            <% } else { %>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Slug</th>
+                            <th>Exercises</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% sets.forEach(set => { %>
+                            <tr>
+                                <td><strong><%= set.name %></strong></td>
+                                <td><code><%= set.slug %></code></td>
+                                <td><%= set.exercise_count %></td>
+                                <td><%= new Date(set.created_at).toLocaleDateString('en-AU') %></td>
+                                <td class="actions">
+                                    <a href="/set/<%= set.slug %>" class="btn btn-small" title="View">👁️</a>
+                                    <a href="/admin/sets/<%= set.id %>/edit" class="btn btn-small" title="Edit">✏️</a>
+                                    <button class="btn btn-small btn-danger" onclick="deleteSet(<%= set.id %>, '<%= set.name %>')" title="Delete">🗑️</button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } %>
+        </main>
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h2>Delete Exercise Set?</h2>
+            <p id="deleteMessage"></p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deleteSetId = null;
+
+        function deleteSet(id, name) {
+            deleteSetId = id;
+            document.getElementById('deleteMessage').textContent =
+                `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+
+        function closeDeleteModal() {
+            deleteSetId = null;
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        async function confirmDelete() {
+            if (!deleteSetId) return;
+
+            try {
+                const response = await fetch(`/admin/sets/${deleteSetId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    alert('Error deleting set: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error deleting set: ' + error.message);
+            }
+
+            closeDeleteModal();
+        }
+
+        // Close modal on background click
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target === modal) {
+                closeDeleteModal();
+            }
+        };
+    </script>
+</body>
+</html>
