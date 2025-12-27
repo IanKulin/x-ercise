@@ -6,16 +6,12 @@ import logger from "./logger.ts";
 import routes from "./routes.ts";
 import adminRoutes from "./routes/admin.ts";
 import db from "./db.ts";
-import { migrateJsonToDatabase } from "./scripts/init-db.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app: Express = express();
 const port = 3000;
-
-// Run database migration on startup
-migrateJsonToDatabase();
 
 // Set up EJS
 app.set("view engine", "ejs");
