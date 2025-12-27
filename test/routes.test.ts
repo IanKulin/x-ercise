@@ -2,11 +2,12 @@ import { describe, it, before, after } from "node:test";
 import assert from "node:assert";
 import { app, server } from "../src/app.ts";
 import db from "../src/db.ts";
+import { seedTestData } from "./seed-test-data.ts";
 
 describe("API Tests", () => {
   before(() => {
-    // Optional: Setup before all tests run
-    // e.g., seed the database with test data
+    // Seed test data into in-memory database
+    seedTestData(db);
   });
 
   after(() => {

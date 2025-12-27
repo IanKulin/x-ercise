@@ -6,7 +6,29 @@ import logger from "./logger.ts";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.resolve(__dirname, "../data/x-ercise.db");
+const getDatabasePath = (): string => {
+  const envPath = process.env.DATABASE_PATH;
+
+  if (envPath) {
+    // If it's the special :memory: value, return it as-is
+    if (envPath === ":memory:") {
+      return ":memory:";
+    }
+
+    // If it's an absolute path, use it directly
+    if (path.isAbsolute(envPath)) {
+      return envPath;
+    }
+
+    // If it's a relative path, resolve it from project root
+    return path.resolve(process.cwd(), envPath);
+  }
+
+  // Default to production database path (backward compatible)
+  return path.resolve(__dirname, "../data/x-ercise.db");
+};
+
+const dbPath = getDatabasePath();
 const db = new Database(dbPath);
 
 // Create the 'completions' table if it doesn't exist
@@ -63,6 +85,11 @@ db.exec(
   "CREATE INDEX IF NOT EXISTS idx_exercises_position ON exercises(set_id, position);",
 );
 
-logger.info("Database initialized.");
+// Log which database is being used (helpful for debugging)
+if (dbPath === ":memory:") {
+  logger.info("Database initialized (in-memory)");
+} else {
+  logger.info(`Database initialized at: ${dbPath}`);
+}
 
 export default db;

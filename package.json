@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node --experimental-strip-types src/app.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test test/**/*.test.ts",
+    "test": "DATABASE_PATH=:memory: node --experimental-strip-types --test test/**/*.test.ts",
     "format": "prettier --write ."
   },
   "keywords": [],
