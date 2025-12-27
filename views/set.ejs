@@ -62,9 +62,12 @@
       </div>
     </div>
 
+    <script id="exercise-data" type="application/json">
+      <%- JSON.stringify(set) %>
+    </script>
     <script>
-      // Pass set data to the timer script
-      const exerciseSet = <%- JSON.stringify(set) %>;
+      // Parse set data for the timer script
+      const exerciseSet = JSON.parse(document.getElementById('exercise-data').textContent);
     </script>
     <script src="/js/timer.js"></script>
   </body>
