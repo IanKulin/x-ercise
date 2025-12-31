@@ -96,8 +96,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   startBtn.addEventListener("click", () => {
     initAudio(); // Initialize audio on user interaction
-    exerciseList.style.display = "none";
-    timerView.style.display = "block";
+    exerciseList.classList.add("hidden");
+    timerView.classList.remove("hidden");
     startNextExercise();
   });
 
@@ -127,13 +127,13 @@ document.addEventListener("DOMContentLoaded", () => {
       loadExerciseImage(exercise.imageSlug).then((imagePath) => {
         if (imagePath) {
           exerciseImage.src = imagePath;
-          exerciseImageContainer.style.display = "block";
+          exerciseImageContainer.classList.remove("hidden");
         } else {
-          exerciseImageContainer.style.display = "none";
+          exerciseImageContainer.classList.add("hidden");
         }
       });
     } else {
-      exerciseImageContainer.style.display = "none";
+      exerciseImageContainer.classList.add("hidden");
     }
 
     startTimer();
@@ -174,13 +174,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function cancelSet() {
     clearInterval(timerInterval);
-    timerView.style.display = "none";
-    cancellationView.style.display = "block";
+    timerView.classList.add("hidden");
+    cancellationView.classList.remove("hidden");
   }
 
   function completeSet() {
-    timerView.style.display = "none";
-    confirmationView.style.display = "block";
+    timerView.classList.add("hidden");
+    confirmationView.classList.remove("hidden");
   }
 
   function recordCompletion() {
@@ -213,12 +213,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   confirmYesBtn.addEventListener("click", () => {
     recordCompletion();
-    confirmationView.style.display = "none";
-    completionView.style.display = "block";
+    confirmationView.classList.add("hidden");
+    completionView.classList.remove("hidden");
   });
 
   confirmNoBtn.addEventListener("click", () => {
-    confirmationView.style.display = "none";
-    cancellationView.style.display = "block";
+    confirmationView.classList.add("hidden");
+    cancellationView.classList.remove("hidden");
   });
 });

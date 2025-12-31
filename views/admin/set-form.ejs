@@ -48,7 +48,7 @@
                                     <div class="exercise-header">
                                         <span class="drag-handle">☰</span>
                                         <span class="exercise-number">Exercise <%= index + 1 %></span>
-                                        <button type="button" class="btn btn-small btn-danger" onclick="removeExercise(this)">Remove</button>
+                                        <button type="button" class="btn btn-small btn-danger remove-exercise-btn">Remove</button>
                                     </div>
 
                                     <div class="form-group">
@@ -83,13 +83,13 @@
 
                                     <div class="form-group">
                                         <label>Image Upload</label>
-                                        <input type="file" name="exerciseImage" accept="image/*"
-                                               onchange="handleImageUpload(this)">
+                                        <input type="file" name="exerciseImage" accept="image/*" class="exercise-image-upload">
                                         <% if (exercise.image_slug) { %>
                                             <div class="image-preview">
                                                 <img src="/images/<%= exercise.image_slug %>.jpg"
                                                      alt="<%= exercise.name %>"
-                                                     onerror="this.src='/images/<%= exercise.image_slug %>.png'; this.onerror=null;">
+                                                     data-image-slug="<%= exercise.image_slug %>"
+                                                     class="exercise-preview-image">
                                             </div>
                                         <% } %>
                                     </div>
@@ -98,7 +98,7 @@
                         <% } %>
                     </div>
 
-                    <button type="button" class="btn btn-secondary" onclick="addExercise()">+ Add Exercise</button>
+                    <button type="button" class="btn btn-secondary" id="addExerciseBtn">+ Add Exercise</button>
                 </div>
 
                 <div class="form-actions">

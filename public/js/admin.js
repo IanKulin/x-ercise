@@ -13,7 +13,7 @@ function addExercise() {
       <div class="exercise-header">
         <span class="drag-handle">☰</span>
         <span class="exercise-number">Exercise ${exerciseCount + 1}</span>
-        <button type="button" class="btn btn-small btn-danger" onclick="removeExercise(this)">Remove</button>
+        <button type="button" class="btn btn-small btn-danger remove-exercise-btn">Remove</button>
       </div>
 
       <div class="form-group">
@@ -40,7 +40,7 @@ function addExercise() {
 
       <div class="form-group">
         <label>Image Upload</label>
-        <input type="file" name="exerciseImage" accept="image/*" onchange="handleImageUpload(this)">
+        <input type="file" name="exerciseImage" accept="image/*" class="exercise-image-upload">
       </div>
     </div>
   `;
@@ -50,7 +50,7 @@ function addExercise() {
   initializeDragAndDrop();
 }
 
-// Remove exercise
+// Remove exercise (called via event delegation)
 function removeExercise(button) {
   const exerciseItem = button.closest('.exercise-item');
   exerciseItem.remove();
@@ -146,6 +146,26 @@ async function handleImageUpload(input) {
   }
 }
 
+// Handle image loading errors with fallback formats
+function handleImageError(img) {
+  const imageSlug = img.dataset.imageSlug;
+  if (!imageSlug) return;
+
+  const supportedFormats = ['jpg', 'png', 'webp', 'gif'];
+  const currentSrc = img.src;
+  const currentExt = currentSrc.split('.').pop().split('?')[0];
+  const currentIndex = supportedFormats.indexOf(currentExt);
+
+  if (currentIndex < supportedFormats.length - 1) {
+    // Try next format
+    const nextFormat = supportedFormats[currentIndex + 1];
+    img.src = `/images/${imageSlug}.${nextFormat}`;
+  } else {
+    // All formats failed, hide the image
+    img.style.display = 'none';
+  }
+}
+
 // Initialize drag and drop
 function initializeDragAndDrop() {
   const exerciseItems = document.querySelectorAll('.exercise-item');
@@ -201,13 +221,40 @@ function getDragAfterElement(container, y) {
   ).element;
 }
 
-// Form submission
+// Form submission and event delegation
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('setForm');
   if (!form) return;
 
   // Initialize drag and drop if exercises exist
   initializeDragAndDrop();
+
+  // Add Exercise button
+  const addExerciseBtn = document.getElementById('addExerciseBtn');
+  if (addExerciseBtn) {
+    addExerciseBtn.addEventListener('click', addExercise);
+  }
+
+  // Event delegation for Remove Exercise buttons
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.remove-exercise-btn')) {
+      removeExercise(e.target.closest('.remove-exercise-btn'));
+    }
+  });
+
+  // Event delegation for image uploads
+  document.addEventListener('change', (e) => {
+    if (e.target.matches('.exercise-image-upload')) {
+      handleImageUpload(e.target);
+    }
+  });
+
+  // Event delegation for image error handling
+  document.addEventListener('error', (e) => {
+    if (e.target.matches('.exercise-preview-image')) {
+      handleImageError(e.target);
+    }
+  }, true);
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
