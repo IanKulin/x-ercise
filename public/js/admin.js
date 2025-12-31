@@ -1,6 +1,5 @@
 // Admin JavaScript for set form interactions
 
-let draggedElement = null;
 let exerciseCounter = 0;
 
 // Add new exercise
@@ -11,7 +10,10 @@ function addExercise() {
   const exerciseHTML = `
     <div class="exercise-item" data-position="${exerciseCount}">
       <div class="exercise-header">
-        <span class="drag-handle">☰</span>
+        <div class="reorder-buttons">
+          <button type="button" class="move-up" title="Move up">↑</button>
+          <button type="button" class="move-down" title="Move down">↓</button>
+        </div>
         <span class="exercise-number">Exercise ${exerciseCount + 1}</span>
         <button type="button" class="btn btn-small btn-danger remove-exercise-btn">Remove</button>
       </div>
@@ -47,7 +49,7 @@ function addExercise() {
 
   exercisesList.insertAdjacentHTML('beforeend', exerciseHTML);
   updateExerciseNumbers();
-  initializeDragAndDrop();
+  updateButtonStates();
 }
 
 // Remove exercise (called via event delegation)
@@ -55,6 +57,7 @@ function removeExercise(button) {
   const exerciseItem = button.closest('.exercise-item');
   exerciseItem.remove();
   updateExerciseNumbers();
+  updateButtonStates();
 }
 
 // Update exercise numbers after add/remove/reorder
@@ -166,59 +169,46 @@ function handleImageError(img) {
   }
 }
 
-// Initialize drag and drop
-function initializeDragAndDrop() {
-  const exerciseItems = document.querySelectorAll('.exercise-item');
+// Initialize reorder buttons
+function initializeReorderButtons() {
+  const exercisesList = document.getElementById('exercisesList');
 
-  exerciseItems.forEach((item) => {
-    const handle = item.querySelector('.drag-handle');
-
-    handle.addEventListener('dragstart', (e) => {
-      draggedElement = item;
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-
-    handle.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      draggedElement = null;
-      updateExerciseNumbers();
-    });
-
-    item.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      const afterElement = getDragAfterElement(item.parentElement, e.clientY);
-      if (afterElement == null) {
-        item.parentElement.appendChild(draggedElement);
-      } else {
-        item.parentElement.insertBefore(draggedElement, afterElement);
+  exercisesList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('move-up')) {
+      const exerciseItem = e.target.closest('.exercise-item');
+      const previousItem = exerciseItem.previousElementSibling;
+      if (previousItem) {
+        exercisesList.insertBefore(exerciseItem, previousItem);
+        updateExerciseNumbers();
+        updateButtonStates();
       }
-    });
+    }
 
-    // Make handle draggable
-    handle.setAttribute('draggable', 'true');
+    if (e.target.classList.contains('move-down')) {
+      const exerciseItem = e.target.closest('.exercise-item');
+      const nextItem = exerciseItem.nextElementSibling;
+      if (nextItem) {
+        exercisesList.insertBefore(nextItem, exerciseItem);
+        updateExerciseNumbers();
+        updateButtonStates();
+      }
+    }
   });
 }
 
-// Get element after which to insert dragged element
-function getDragAfterElement(container, y) {
-  const draggableElements = [
-    ...container.querySelectorAll('.exercise-item:not(.dragging)'),
-  ];
+// Update button states based on position
+function updateButtonStates() {
+  const exercises = document.querySelectorAll('.exercise-item');
+  exercises.forEach((exercise, index) => {
+    const upButton = exercise.querySelector('.move-up');
+    const downButton = exercise.querySelector('.move-down');
 
-  return draggableElements.reduce(
-    (closest, child) => {
-      const box = child.getBoundingClientRect();
-      const offset = y - box.top - box.height / 2;
+    // Disable up button for first exercise
+    upButton.disabled = index === 0;
 
-      if (offset < 0 && offset > closest.offset) {
-        return { offset: offset, element: child };
-      } else {
-        return closest;
-      }
-    },
-    { offset: Number.NEGATIVE_INFINITY },
-  ).element;
+    // Disable down button for last exercise
+    downButton.disabled = index === exercises.length - 1;
+  });
 }
 
 // Form submission and event delegation
@@ -226,8 +216,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('setForm');
   if (!form) return;
 
-  // Initialize drag and drop if exercises exist
-  initializeDragAndDrop();
+  // Initialize reorder buttons
+  initializeReorderButtons();
+  updateButtonStates();
 
   // Add Exercise button
   const addExerciseBtn = document.getElementById('addExerciseBtn');

@@ -46,7 +46,10 @@
                             <% set.exercises.forEach((exercise, index) => { %>
                                 <div class="exercise-item" data-position="<%= index %>">
                                     <div class="exercise-header">
-                                        <span class="drag-handle">☰</span>
+                                        <div class="reorder-buttons">
+                                            <button type="button" class="move-up" title="Move up">↑</button>
+                                            <button type="button" class="move-down" title="Move down">↓</button>
+                                        </div>
                                         <span class="exercise-number">Exercise <%= index + 1 %></span>
                                         <button type="button" class="btn btn-small btn-danger remove-exercise-btn">Remove</button>
                                     </div>
@@ -86,10 +89,11 @@
                                         <input type="file" name="exerciseImage" accept="image/*" class="exercise-image-upload">
                                         <% if (exercise.image_slug) { %>
                                             <div class="image-preview">
-                                                <img src="/images/<%= exercise.image_slug %>.jpg"
+                                                <img src="/images/<%= exercise.image_slug %>.png"
                                                      alt="<%= exercise.name %>"
                                                      data-image-slug="<%= exercise.image_slug %>"
-                                                     class="exercise-preview-image">
+                                                     class="exercise-preview-image"
+                                                     onerror="handleImageError(this)">
                                             </div>
                                         <% } %>
                                     </div>
