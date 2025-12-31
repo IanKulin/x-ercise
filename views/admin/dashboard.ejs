@@ -13,11 +13,11 @@
             <h1>X-ercise Admin</h1>
             <div class="admin-actions">
                 <a href="/" class="btn btn-secondary">← Back to Home</a>
+                <a href="/admin/sets/new" class="btn btn-primary">Add Set</a>
                 <form id="import-form" action="/admin/sets/import" method="POST" enctype="multipart/form-data" style="display: inline;">
-                    <label for="import-file" class="btn btn-secondary" style="cursor: pointer;">📥 Import Set</label>
+                    <label for="import-file" class="btn btn-primary" style="cursor: pointer;">Import Set</label>
                     <input type="file" id="import-file" name="setFile" accept=".json" style="display: none;">
                 </form>
-                <a href="/admin/sets/new" class="btn btn-primary">+ Create New Set</a>
             </div>
         </header>
 
