@@ -42,7 +42,7 @@
                                 <td><%= set.exercise_count %></td>
                                 <td><%= new Date(set.created_at).toLocaleDateString('en-AU') %></td>
                                 <td class="actions">
-                                    <button class="btn btn-small" onclick="exportSet(<%= set.id %>, '<%= set.slug %>')" title="Export">📥</button>
+                                    <a href="/admin/sets/<%= set.id %>/export" class="btn btn-small" download title="Export">📥</a>
                                     <a href="/admin/sets/<%= set.id %>/edit" class="btn btn-small" title="Edit">✏️</a>
                                     <button class="btn btn-small btn-danger" onclick="deleteSet(<%= set.id %>, '<%= set.name %>')" title="Delete">🗑️</button>
                                 </td>
@@ -67,34 +67,6 @@
 
     <script>
         let deleteSetId = null;
-
-        async function exportSet(id, slug) {
-            try {
-                const response = await fetch(`/admin/sets/${id}/export`);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                // Create blob and trigger download
-                const blob = new Blob([JSON.stringify(data, null, 2)], {
-                    type: 'application/json'
-                });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${slug}.json`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-
-            } catch (error) {
-                alert('Error exporting set: ' + error.message);
-            }
-        }
 
         function deleteSet(id, name) {
             deleteSetId = id;
