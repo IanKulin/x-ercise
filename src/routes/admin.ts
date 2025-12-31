@@ -403,7 +403,7 @@ export default (logger: Logger): Router => {
       res.json({
         success: true,
         filename: newFilename,
-        path: `/images/exercises/${newFilename}`,
+        path: `/images/${newFilename}`,
         imageSlug: imageSlug,
       });
     } catch (error) {

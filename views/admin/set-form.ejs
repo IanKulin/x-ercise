@@ -87,9 +87,9 @@
                                                onchange="handleImageUpload(this)">
                                         <% if (exercise.image_slug) { %>
                                             <div class="image-preview">
-                                                <img src="/images/exercises/<%= exercise.image_slug %>.jpg"
+                                                <img src="/images/<%= exercise.image_slug %>.jpg"
                                                      alt="<%= exercise.name %>"
-                                                     onerror="this.src='/images/exercises/<%= exercise.image_slug %>.png'; this.onerror=null;">
+                                                     onerror="this.src='/images/<%= exercise.image_slug %>.png'; this.onerror=null;">
                                             </div>
                                         <% } %>
                                     </div>

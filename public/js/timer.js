@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         const format = supportedFormats[formatIndex];
-        const imagePath = `/images/exercises/${slug}.${format}`;
+        const imagePath = `/images/${slug}.${format}`;
         const img = new Image();
         img.onload = () => {
           imageCache.set(slug, imagePath);
