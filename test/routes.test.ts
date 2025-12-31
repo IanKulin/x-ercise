@@ -115,4 +115,98 @@ describe("API Tests", () => {
       assert.strictEqual(response.status, 400);
     });
   });
+
+  describe("GET /admin/sets/:id/export", () => {
+    it("should export set as JSON with correct structure", async () => {
+      // Get the ID of a test set
+      const sets = db.prepare("SELECT id FROM exercise_sets WHERE slug = ?").get("morning-warm-up") as { id: number } | undefined;
+      assert.ok(sets, "Test set should exist");
+
+      const response = await fetch(`http://localhost:3000/admin/sets/${sets.id}/export`);
+      assert.strictEqual(response.status, 200);
+
+      // Check Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      assert.ok(contentDisposition);
+      assert.ok(contentDisposition.includes('attachment'));
+      assert.ok(contentDisposition.includes('morning-warm-up.json'));
+
+      const data = await response.json();
+
+      // Verify structure
+      assert.strictEqual(typeof data.name, 'string');
+      assert.strictEqual(typeof data.slug, 'string');
+      assert.ok(Array.isArray(data.exercises));
+
+      // Verify DB fields are excluded
+      assert.strictEqual(data.id, undefined);
+      assert.strictEqual(data.description, undefined);
+      assert.strictEqual(data.created_at, undefined);
+      assert.strictEqual(data.updated_at, undefined);
+
+      // Verify exercise structure
+      if (data.exercises.length > 0) {
+        const exercise = data.exercises[0];
+        assert.strictEqual(typeof exercise.name, 'string');
+        assert.strictEqual(typeof exercise.duration, 'number');
+        assert.strictEqual(typeof exercise.description, 'string');
+        assert.strictEqual(typeof exercise.position, 'number');
+
+        // Verify exercise DB fields are excluded
+        assert.strictEqual(exercise.id, undefined);
+        assert.strictEqual(exercise.set_id, undefined);
+        assert.strictEqual(exercise.created_at, undefined);
+        assert.strictEqual(exercise.updated_at, undefined);
+      }
+    });
+
+    it("should return 404 for non-existent set", async () => {
+      const response = await fetch("http://localhost:3000/admin/sets/99999/export");
+      assert.strictEqual(response.status, 404);
+    });
+
+    it("should handle sets with no exercises", async () => {
+      // Create a set with no exercises
+      const timestamp = new Date().toISOString();
+      const result = db.prepare(
+        "INSERT INTO exercise_sets (name, slug, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
+      ).run("Empty Set", "empty-set", "", timestamp, timestamp);
+
+      const setId = result.lastInsertRowid as number;
+
+      const response = await fetch(`http://localhost:3000/admin/sets/${setId}/export`);
+      assert.strictEqual(response.status, 200);
+
+      const data = await response.json();
+      assert.strictEqual(data.name, "Empty Set");
+      assert.strictEqual(data.slug, "empty-set");
+      assert.strictEqual(data.exercises.length, 0);
+
+      // Cleanup
+      db.prepare("DELETE FROM exercise_sets WHERE id = ?").run(setId);
+    });
+
+    it("should exclude imageSlug when null", async () => {
+      // Create a set with an exercise without imageSlug
+      const timestamp = new Date().toISOString();
+      const setResult = db.prepare(
+        "INSERT INTO exercise_sets (name, slug, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
+      ).run("Test Set No Image", "test-set-no-image", "", timestamp, timestamp);
+
+      const setId = setResult.lastInsertRowid as number;
+
+      db.prepare(
+        "INSERT INTO exercises (set_id, name, image_slug, duration, description, position, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+      ).run(setId, "Exercise No Image", null, 30, "Description", 0, timestamp, timestamp);
+
+      const response = await fetch(`http://localhost:3000/admin/sets/${setId}/export`);
+      assert.strictEqual(response.status, 200);
+
+      const data = await response.json();
+      assert.strictEqual(data.exercises[0].imageSlug, undefined);
+
+      // Cleanup
+      db.prepare("DELETE FROM exercise_sets WHERE id = ?").run(setId);
+    });
+  });
 });

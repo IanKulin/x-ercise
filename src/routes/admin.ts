@@ -335,6 +335,51 @@ export default (logger: Logger): Router => {
     }
   });
 
+  // Export set as JSON
+  router.get("/sets/:id/export", (req: Request, res: Response) => {
+    try {
+      const setId = parseInt(req.params.id!);
+
+      // Fetch set
+      const setStmt = db.prepare("SELECT * FROM exercise_sets WHERE id = ?");
+      const set = setStmt.get(setId) as ExerciseSetRow | undefined;
+
+      if (!set) {
+        return res.status(404).json({ error: "Set not found" });
+      }
+
+      // Fetch exercises
+      const exercisesStmt = db.prepare(`
+        SELECT * FROM exercises
+        WHERE set_id = ?
+        ORDER BY position ASC
+      `);
+      const exercises = exercisesStmt.all(setId) as ExerciseRow[];
+
+      // Transform to export format (exclude DB-specific fields)
+      const exportData = {
+        name: set.name,
+        slug: set.slug,
+        exercises: exercises.map(ex => ({
+          name: ex.name,
+          imageSlug: ex.image_slug || undefined,
+          duration: ex.duration,
+          description: ex.description,
+          position: ex.position,
+        })),
+      };
+
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="${set.slug}.json"`);
+
+      res.json(exportData);
+    } catch (error) {
+      logger.error("Error exporting set:", error);
+      res.status(500).json({ error: "Failed to export set" });
+    }
+  });
+
   // Delete set
   router.delete("/sets/:id", (req: Request, res: Response) => {
     try {
