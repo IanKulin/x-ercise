@@ -54,6 +54,25 @@ export const upload = multer({
   fileFilter,
 });
 
+// Multer instance for JSON imports
+const jsonFileFilter = (
+  req: any,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+) => {
+  if (file.mimetype === 'application/json' || file.originalname.endsWith('.json')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only JSON files are allowed'));
+  }
+};
+
+export const jsonUpload = multer({
+  storage,
+  limits: { fileSize: 1024 * 1024 }, // 1MB for JSON files
+  fileFilter: jsonFileFilter,
+});
+
 /**
  * Validates that an imageSlug is safe (no path traversal)
  */

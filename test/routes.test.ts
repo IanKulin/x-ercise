@@ -209,4 +209,246 @@ describe("API Tests", () => {
       db.prepare("DELETE FROM exercise_sets WHERE id = ?").run(setId);
     });
   });
+
+  describe("POST /admin/sets/import", () => {
+    it("should import valid JSON file", async () => {
+      const json = {
+        name: "Test Import",
+        slug: "test-import",
+        exercises: [
+          {
+            name: "Exercise 1",
+            imageSlug: "ex1",
+            duration: 30,
+            description: "Test exercise",
+            position: 0
+          }
+        ]
+      };
+
+      // Create form data with JSON file
+      const boundary = "----WebKitFormBoundary" + Math.random().toString(36);
+      const fileContent = JSON.stringify(json);
+      const body = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="setFile"; filename="test.json"`,
+        `Content-Type: application/json`,
+        ``,
+        fileContent,
+        `--${boundary}--`
+      ].join("\r\n");
+
+      const response = await fetch("http://localhost:3000/admin/sets/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": `multipart/form-data; boundary=${boundary}`
+        },
+        body: body,
+        redirect: "manual"
+      });
+
+      // Should redirect to admin dashboard
+      assert.strictEqual(response.status, 302);
+      const location = response.headers.get("location");
+      assert.ok(location);
+      assert.ok(location.includes("/admin"));
+      assert.ok(location.includes("imported=true"));
+
+      // Verify in database
+      const set = db.prepare("SELECT * FROM exercise_sets WHERE slug = ?").get("test-import");
+      assert.ok(set);
+
+      // Cleanup
+      db.prepare("DELETE FROM exercise_sets WHERE slug = ?").run("test-import");
+    });
+
+    it("should auto-rename on slug conflict", async () => {
+      // Create existing set with slug 'conflict-test'
+      const timestamp = new Date().toISOString();
+      db.prepare(
+        "INSERT INTO exercise_sets (name, slug, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
+      ).run("Existing Set", "conflict-test", "", timestamp, timestamp);
+
+      // Import another with same slug
+      const json = {
+        name: "Conflict Test",
+        slug: "conflict-test",
+        exercises: [
+          {
+            name: "Exercise 1",
+            duration: 30,
+            description: "Test exercise",
+            position: 0
+          }
+        ]
+      };
+
+      const boundary = "----WebKitFormBoundary" + Math.random().toString(36);
+      const fileContent = JSON.stringify(json);
+      const body = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="setFile"; filename="test.json"`,
+        `Content-Type: application/json`,
+        ``,
+        fileContent,
+        `--${boundary}--`
+      ].join("\r\n");
+
+      const response = await fetch("http://localhost:3000/admin/sets/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": `multipart/form-data; boundary=${boundary}`
+        },
+        body: body,
+        redirect: "manual"
+      });
+
+      assert.strictEqual(response.status, 302);
+      const location = response.headers.get("location");
+      assert.ok(location);
+      assert.ok(location.includes("conflict-test-1"));
+
+      // Verify new one is 'conflict-test-1'
+      const newSet = db.prepare("SELECT * FROM exercise_sets WHERE slug = ?").get("conflict-test-1");
+      assert.ok(newSet);
+
+      // Cleanup
+      db.prepare("DELETE FROM exercise_sets WHERE slug IN (?, ?)").run("conflict-test", "conflict-test-1");
+    });
+
+    it("should return 400 for missing required fields", async () => {
+      const json = {
+        name: "Test Import"
+        // Missing slug and exercises
+      };
+
+      const boundary = "----WebKitFormBoundary" + Math.random().toString(36);
+      const fileContent = JSON.stringify(json);
+      const body = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="setFile"; filename="test.json"`,
+        `Content-Type: application/json`,
+        ``,
+        fileContent,
+        `--${boundary}--`
+      ].join("\r\n");
+
+      const response = await fetch("http://localhost:3000/admin/sets/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": `multipart/form-data; boundary=${boundary}`
+        },
+        body: body
+      });
+
+      assert.strictEqual(response.status, 400);
+    });
+
+    it("should return 400 for invalid JSON", async () => {
+      const boundary = "----WebKitFormBoundary" + Math.random().toString(36);
+      const fileContent = "{ invalid json }";
+      const body = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="setFile"; filename="test.json"`,
+        `Content-Type: application/json`,
+        ``,
+        fileContent,
+        `--${boundary}--`
+      ].join("\r\n");
+
+      const response = await fetch("http://localhost:3000/admin/sets/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": `multipart/form-data; boundary=${boundary}`
+        },
+        body: body
+      });
+
+      assert.strictEqual(response.status, 400);
+    });
+
+    it("should return 400 for invalid exercise duration", async () => {
+      const json = {
+        name: "Test Import",
+        slug: "test-import",
+        exercises: [
+          {
+            name: "Exercise 1",
+            duration: 99999, // Invalid: too large
+            description: "Test exercise",
+            position: 0
+          }
+        ]
+      };
+
+      const boundary = "----WebKitFormBoundary" + Math.random().toString(36);
+      const fileContent = JSON.stringify(json);
+      const body = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="setFile"; filename="test.json"`,
+        `Content-Type: application/json`,
+        ``,
+        fileContent,
+        `--${boundary}--`
+      ].join("\r\n");
+
+      const response = await fetch("http://localhost:3000/admin/sets/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": `multipart/form-data; boundary=${boundary}`
+        },
+        body: body
+      });
+
+      assert.strictEqual(response.status, 400);
+    });
+
+    it("should handle exercises without imageSlug", async () => {
+      const json = {
+        name: "Test Import No Images",
+        slug: "test-import-no-images",
+        exercises: [
+          {
+            name: "Exercise 1",
+            duration: 30,
+            description: "Test exercise without image",
+            position: 0
+          }
+        ]
+      };
+
+      const boundary = "----WebKitFormBoundary" + Math.random().toString(36);
+      const fileContent = JSON.stringify(json);
+      const body = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="setFile"; filename="test.json"`,
+        `Content-Type: application/json`,
+        ``,
+        fileContent,
+        `--${boundary}--`
+      ].join("\r\n");
+
+      const response = await fetch("http://localhost:3000/admin/sets/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": `multipart/form-data; boundary=${boundary}`
+        },
+        body: body,
+        redirect: "manual"
+      });
+
+      assert.strictEqual(response.status, 302);
+
+      // Verify in database
+      const set = db.prepare("SELECT * FROM exercise_sets WHERE slug = ?").get("test-import-no-images");
+      assert.ok(set);
+
+      const exercises = db.prepare("SELECT * FROM exercises WHERE set_id = ?").all((set as any).id);
+      assert.strictEqual(exercises.length, 1);
+      assert.strictEqual((exercises[0] as any).image_slug, null);
+
+      // Cleanup
+      db.prepare("DELETE FROM exercise_sets WHERE slug = ?").run("test-import-no-images");
+    });
+  });
 });

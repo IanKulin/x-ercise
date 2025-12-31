@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import db from "../db.ts";
-import { upload, isValidImageSlug, deleteExerciseImage } from "../middleware/upload.ts";
+import { upload, jsonUpload, isValidImageSlug, deleteExerciseImage } from "../middleware/upload.ts";
 import type {
   Logger,
   ExerciseSetRow,
@@ -20,6 +20,62 @@ const __dirname = path.dirname(__filename);
  */
 function isValidSlug(slug: string): boolean {
   return /^[a-z0-9-]+$/.test(slug);
+}
+
+/**
+ * Validates import data structure
+ */
+function validateImportData(data: any): { valid: boolean; error?: string } {
+  // Check required fields
+  if (!data || typeof data !== 'object') {
+    return { valid: false, error: 'Data must be an object' };
+  }
+
+  if (!data.name || typeof data.name !== 'string') {
+    return { valid: false, error: 'Missing or invalid "name"' };
+  }
+
+  if (!data.slug || typeof data.slug !== 'string') {
+    return { valid: false, error: 'Missing or invalid "slug"' };
+  }
+
+  if (!Array.isArray(data.exercises) || data.exercises.length === 0) {
+    return { valid: false, error: 'Missing or empty "exercises" array' };
+  }
+
+  // Validate slug format
+  if (!isValidSlug(data.slug)) {
+    return { valid: false, error: 'Slug must be lowercase alphanumeric with hyphens' };
+  }
+
+  // Validate each exercise
+  for (let i = 0; i < data.exercises.length; i++) {
+    const ex = data.exercises[i];
+
+    if (!ex.name || typeof ex.name !== 'string') {
+      return { valid: false, error: `Exercise ${i}: missing or invalid "name"` };
+    }
+
+    if (typeof ex.duration !== 'number' || ex.duration < 1 || ex.duration > 3600) {
+      return { valid: false, error: `Exercise ${i}: duration must be 1-3600 seconds` };
+    }
+
+    if (!ex.description || typeof ex.description !== 'string') {
+      return { valid: false, error: `Exercise ${i}: missing or invalid "description"` };
+    }
+
+    if (ex.imageSlug && typeof ex.imageSlug === 'string') {
+      if (!isValidImageSlug(ex.imageSlug)) {
+        return { valid: false, error: `Exercise ${i}: invalid imageSlug format` };
+      }
+    }
+
+    if (ex.position !== undefined && typeof ex.position !== 'number') {
+      return { valid: false, error: `Exercise ${i}: position must be a number` };
+    }
+  }
+
+  return { valid: true };
 }
 
 export default (logger: Logger): Router => {
@@ -55,7 +111,7 @@ export default (logger: Logger): Router => {
   // Render edit set form
   router.get("/sets/:id/edit", (req: Request, res: Response) => {
     try {
-      const setId = parseInt(req.params.id);
+      const setId = parseInt(req.params.id!);
 
       // Fetch set
       const setStmt = db.prepare("SELECT * FROM exercise_sets WHERE id = ?");
@@ -109,7 +165,7 @@ export default (logger: Logger): Router => {
   // Get single set with exercises (API endpoint)
   router.get("/api/sets/:id", (req: Request, res: Response) => {
     try {
-      const setId = parseInt(req.params.id);
+      const setId = parseInt(req.params.id!);
 
       // Fetch set
       const setStmt = db.prepare("SELECT * FROM exercise_sets WHERE id = ?");
@@ -229,7 +285,7 @@ export default (logger: Logger): Router => {
   // Update existing set
   router.put("/sets/:id", (req: Request, res: Response) => {
     try {
-      const setId = parseInt(req.params.id);
+      const setId = parseInt(req.params.id!);
       const { name, slug, exercises } = req.body as CreateSetRequest;
 
       // Validation (same as create)
@@ -380,10 +436,95 @@ export default (logger: Logger): Router => {
     }
   });
 
+  // Import set from JSON
+  router.post("/sets/import", jsonUpload.single("setFile"), (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).send('No file uploaded');
+      }
+
+      // Parse JSON
+      const fileContent = fs.readFileSync(req.file.path, 'utf-8');
+      let importData;
+
+      try {
+        importData = JSON.parse(fileContent);
+      } catch (parseError) {
+        fs.unlinkSync(req.file.path); // Clean up temp file
+        return res.status(400).send('Invalid JSON file');
+      }
+
+      // Validate structure
+      const validation = validateImportData(importData);
+      if (!validation.valid) {
+        fs.unlinkSync(req.file.path); // Clean up temp file
+        return res.status(400).send(`Invalid JSON: ${validation.error}`);
+      }
+
+      // Check for slug conflict and auto-increment if needed
+      let finalSlug = importData.slug;
+      const checkSlugStmt = db.prepare('SELECT id FROM exercise_sets WHERE slug = ?');
+      const existing = checkSlugStmt.get(finalSlug);
+
+      if (existing) {
+        let counter = 1;
+        while (checkSlugStmt.get(`${importData.slug}-${counter}`)) {
+          counter++;
+        }
+        finalSlug = `${importData.slug}-${counter}`;
+      }
+
+      const timestamp = new Date().toISOString();
+
+      // Insert using transaction
+      const result = db.transaction(() => {
+        const setResult = db.prepare(`
+          INSERT INTO exercise_sets (name, slug, description, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(importData.name, finalSlug, "", timestamp, timestamp);
+
+        const exerciseStmt = db.prepare(`
+          INSERT INTO exercises (set_id, name, image_slug, duration, description, position, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        for (let i = 0; i < importData.exercises.length; i++) {
+          const exercise = importData.exercises[i];
+          exerciseStmt.run(
+            setResult.lastInsertRowid,
+            exercise.name,
+            exercise.imageSlug || null,
+            exercise.duration,
+            exercise.description,
+            exercise.position ?? i,
+            timestamp,
+            timestamp
+          );
+        }
+
+        return setResult.lastInsertRowid;
+      })();
+
+      // Clean up temp file
+      fs.unlinkSync(req.file.path);
+
+      logger.info(`Imported set: ${importData.name} as ${finalSlug}`);
+
+      // Redirect with success message
+      res.redirect(`/admin?imported=true&slug=${finalSlug}`);
+    } catch (error: any) {
+      logger.error('Import error:', error);
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      res.status(500).send('Import failed: ' + error.message);
+    }
+  });
+
   // Delete set
   router.delete("/sets/:id", (req: Request, res: Response) => {
     try {
-      const setId = parseInt(req.params.id);
+      const setId = parseInt(req.params.id!);
 
       // Get exercises to clean up images
       const exercisesStmt = db.prepare("SELECT image_slug FROM exercises WHERE set_id = ?");

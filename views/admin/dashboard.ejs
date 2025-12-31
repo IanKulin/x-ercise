@@ -13,6 +13,10 @@
             <h1>X-ercise Admin</h1>
             <div class="admin-actions">
                 <a href="/" class="btn btn-secondary">← Back to Home</a>
+                <form id="import-form" action="/admin/sets/import" method="POST" enctype="multipart/form-data" style="display: inline;">
+                    <label for="import-file" class="btn btn-secondary" style="cursor: pointer;">📥 Import Set</label>
+                    <input type="file" id="import-file" name="setFile" accept=".json" style="display: none;">
+                </form>
                 <a href="/admin/sets/new" class="btn btn-primary">+ Create New Set</a>
             </div>
         </header>
@@ -66,6 +70,36 @@
     </div>
 
     <script>
+        // Handle import file selection
+        document.getElementById('import-file').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                // Basic validation
+                if (!data.name || !data.slug || !Array.isArray(data.exercises)) {
+                    alert('Invalid JSON format. File must contain "name", "slug", and "exercises" array.');
+                    e.target.value = '';
+                    return;
+                }
+
+                if (data.exercises.length === 0) {
+                    alert('Exercise set must contain at least one exercise.');
+                    e.target.value = '';
+                    return;
+                }
+
+                // Submit form
+                e.target.form.submit();
+            } catch (err) {
+                alert('Invalid JSON file: ' + err.message);
+                e.target.value = '';
+            }
+        });
+
         let deleteSetId = null;
 
         function deleteSet(id, name) {
