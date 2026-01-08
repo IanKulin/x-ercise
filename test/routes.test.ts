@@ -1,6 +1,6 @@
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert";
-import { app, server } from "../src/app.ts";
+import { server } from "../src/app.ts";
 import db from "../src/db.ts";
 import { seedTestData } from "./seed-test-data.ts";
 
@@ -478,14 +478,14 @@ describe("API Tests", () => {
       // Verify in database
       const set = db
         .prepare("SELECT * FROM exercise_sets WHERE slug = ?")
-        .get("test-import-no-images");
+        .get("test-import-no-images") as { id: number } | undefined;
       assert.ok(set);
 
       const exercises = db
         .prepare("SELECT * FROM exercises WHERE set_id = ?")
-        .all((set as any).id);
+        .all(set.id) as Array<{ image_slug: string | null }>;
       assert.strictEqual(exercises.length, 1);
-      assert.strictEqual((exercises[0] as any).image_slug, null);
+      assert.strictEqual(exercises[0]?.image_slug, null);
 
       // Cleanup
       db.prepare("DELETE FROM exercise_sets WHERE slug = ?").run(

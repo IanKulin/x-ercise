@@ -28,7 +28,9 @@
       "mcp__playwright__playwright_get_visible_html",
       "mcp__playwright__playwright_fill",
       "Bash(mkdir:*)",
-      "Bash(docker build:*)"
+      "Bash(docker build:*)",
+      "Bash(npm run lint:fix:*)",
+      "Bash(npm run lint:*)"
     ]
   }
 }

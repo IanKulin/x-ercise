@@ -7,7 +7,9 @@
     "start": "node --experimental-strip-types src/app.ts",
     "typecheck": "tsc --noEmit",
     "test": "DATABASE_PATH=:memory: node --experimental-strip-types --test test/**/*.test.ts",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "",
@@ -22,11 +24,15 @@
     "multer": "^2.0.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/ejs": "^3.1.5",
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.3",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.7.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.52.0"
   }
 }
