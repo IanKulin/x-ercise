@@ -1,0 +1,61 @@
+{
+  "name": "X-ercise Development",
+  "build": {
+    "dockerfile": "Dockerfile.dev",
+    "context": ".."
+  },
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      // Extensions to install
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "alexcvzz.vscode-sqlite",
+        "ms-vscode.vscode-typescript-next",
+        "digitalbrainstem.javascript-ejs-support",
+        "ms-azuretools.vscode-docker"
+      ],
+
+      // Settings
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
+    }
+  },
+
+  // Forward ports
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "X-ercise App",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // Mount volumes for data persistence (includes database and images)
+  "mounts": [
+    "source=${localWorkspaceFolder}/data,target=/app/data,type=bind"
+  ],
+
+  // Install dependencies after container creation
+  "postCreateCommand": "npm install",
+
+  // Use node user (non-root)
+  "remoteUser": "node",
+
+  // Features to add
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  }
+}
