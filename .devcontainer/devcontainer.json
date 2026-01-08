@@ -5,10 +5,8 @@
     "context": ".."
   },
 
-  // Configure tool-specific properties
   "customizations": {
     "vscode": {
-      // Extensions to install
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
@@ -17,8 +15,6 @@
         "digitalbrainstem.javascript-ejs-support",
         "ms-azuretools.vscode-docker"
       ],
-
-      // Settings
       "settings": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -32,7 +28,6 @@
     }
   },
 
-  // Forward ports
   "forwardPorts": [3000],
   "portsAttributes": {
     "3000": {
@@ -41,21 +36,16 @@
     }
   },
 
-  // Mount volumes for data persistence (includes database and images)
+  // Mount SSH keys directly - this works on macOS
   "mounts": [
-    "source=${localWorkspaceFolder}/data,target=/app/data,type=bind"
+    "source=${localWorkspaceFolder}/data,target=/app/data,type=bind",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/node/.ssh,type=bind,readonly"
   ],
 
-  // Install dependencies after container creation
   "postCreateCommand": "npm install",
-
-  // Use node user (non-root)
   "remoteUser": "node",
-
-  // Set a specific container name
   "runArgs": ["--name", "x-ercise-dev"],
 
-  // Features to add
   "features": {
     "ghcr.io/devcontainers/features/git:1": {
       "version": "latest"
