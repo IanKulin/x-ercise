@@ -98,9 +98,7 @@ export default (logger: Logger): Router => {
     try {
       // Fetch set by slug
       const setStmt = db.prepare("SELECT * FROM exercise_sets WHERE slug = ?");
-      const setRow = setStmt.get(req.params.slug) as
-        | ExerciseSetRow
-        | undefined;
+      const setRow = setStmt.get(req.params.slug) as ExerciseSetRow | undefined;
 
       if (!setRow) {
         return res.status(404).send("Set not found");

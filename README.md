@@ -20,5 +20,3 @@ This codebase is intended to be edited from inside a VSCode dev container. To ru
 ```bash
 docker exec -it -w /workspaces/x-ercise x-ercise-dev /bin/sh
 ```
-
-

@@ -56,9 +56,7 @@ const createExerciseSetsTable = `
 db.exec(createExerciseSetsTable);
 
 // Create index on slug for faster lookups
-db.exec(
-  "CREATE INDEX IF NOT EXISTS idx_sets_slug ON exercise_sets(slug);",
-);
+db.exec("CREATE INDEX IF NOT EXISTS idx_sets_slug ON exercise_sets(slug);");
 
 // Create the 'exercises' table
 const createExercisesTable = `

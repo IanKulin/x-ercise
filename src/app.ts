@@ -20,7 +20,10 @@ app.set("views", path.join(__dirname, "../views"));
 // Serve static files
 app.use(express.static(path.join(__dirname, "../public")));
 // Serve exercise images from data/images/exercises at /images URL path
-app.use('/images', express.static(path.join(__dirname, '../data/images/exercises')));
+app.use(
+  "/images",
+  express.static(path.join(__dirname, "../data/images/exercises")),
+);
 
 // Parse JSON and URL-encoded bodies
 app.use(express.json());

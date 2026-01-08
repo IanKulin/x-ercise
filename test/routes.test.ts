@@ -119,23 +119,27 @@ describe("API Tests", () => {
   describe("GET /admin/sets/:id/export", () => {
     it("should export set as JSON with correct structure", async () => {
       // Get the ID of a test set
-      const sets = db.prepare("SELECT id FROM exercise_sets WHERE slug = ?").get("morning-warm-up") as { id: number } | undefined;
+      const sets = db
+        .prepare("SELECT id FROM exercise_sets WHERE slug = ?")
+        .get("morning-warm-up") as { id: number } | undefined;
       assert.ok(sets, "Test set should exist");
 
-      const response = await fetch(`http://localhost:3000/admin/sets/${sets.id}/export`);
+      const response = await fetch(
+        `http://localhost:3000/admin/sets/${sets.id}/export`,
+      );
       assert.strictEqual(response.status, 200);
 
       // Check Content-Disposition header
-      const contentDisposition = response.headers.get('Content-Disposition');
+      const contentDisposition = response.headers.get("Content-Disposition");
       assert.ok(contentDisposition);
-      assert.ok(contentDisposition.includes('attachment'));
-      assert.ok(contentDisposition.includes('morning-warm-up.json'));
+      assert.ok(contentDisposition.includes("attachment"));
+      assert.ok(contentDisposition.includes("morning-warm-up.json"));
 
       const data = await response.json();
 
       // Verify structure
-      assert.strictEqual(typeof data.name, 'string');
-      assert.strictEqual(typeof data.slug, 'string');
+      assert.strictEqual(typeof data.name, "string");
+      assert.strictEqual(typeof data.slug, "string");
       assert.ok(Array.isArray(data.exercises));
 
       // Verify DB fields are excluded
@@ -147,10 +151,10 @@ describe("API Tests", () => {
       // Verify exercise structure
       if (data.exercises.length > 0) {
         const exercise = data.exercises[0];
-        assert.strictEqual(typeof exercise.name, 'string');
-        assert.strictEqual(typeof exercise.duration, 'number');
-        assert.strictEqual(typeof exercise.description, 'string');
-        assert.strictEqual(typeof exercise.position, 'number');
+        assert.strictEqual(typeof exercise.name, "string");
+        assert.strictEqual(typeof exercise.duration, "number");
+        assert.strictEqual(typeof exercise.description, "string");
+        assert.strictEqual(typeof exercise.position, "number");
 
         // Verify exercise DB fields are excluded
         assert.strictEqual(exercise.id, undefined);
@@ -161,20 +165,26 @@ describe("API Tests", () => {
     });
 
     it("should return 404 for non-existent set", async () => {
-      const response = await fetch("http://localhost:3000/admin/sets/99999/export");
+      const response = await fetch(
+        "http://localhost:3000/admin/sets/99999/export",
+      );
       assert.strictEqual(response.status, 404);
     });
 
     it("should handle sets with no exercises", async () => {
       // Create a set with no exercises
       const timestamp = new Date().toISOString();
-      const result = db.prepare(
-        "INSERT INTO exercise_sets (name, slug, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
-      ).run("Empty Set", "empty-set", "", timestamp, timestamp);
+      const result = db
+        .prepare(
+          "INSERT INTO exercise_sets (name, slug, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+        )
+        .run("Empty Set", "empty-set", "", timestamp, timestamp);
 
       const setId = result.lastInsertRowid as number;
 
-      const response = await fetch(`http://localhost:3000/admin/sets/${setId}/export`);
+      const response = await fetch(
+        `http://localhost:3000/admin/sets/${setId}/export`,
+      );
       assert.strictEqual(response.status, 200);
 
       const data = await response.json();
@@ -189,17 +199,36 @@ describe("API Tests", () => {
     it("should exclude imageSlug when null", async () => {
       // Create a set with an exercise without imageSlug
       const timestamp = new Date().toISOString();
-      const setResult = db.prepare(
-        "INSERT INTO exercise_sets (name, slug, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
-      ).run("Test Set No Image", "test-set-no-image", "", timestamp, timestamp);
+      const setResult = db
+        .prepare(
+          "INSERT INTO exercise_sets (name, slug, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+        )
+        .run(
+          "Test Set No Image",
+          "test-set-no-image",
+          "",
+          timestamp,
+          timestamp,
+        );
 
       const setId = setResult.lastInsertRowid as number;
 
       db.prepare(
-        "INSERT INTO exercises (set_id, name, image_slug, duration, description, position, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-      ).run(setId, "Exercise No Image", null, 30, "Description", 0, timestamp, timestamp);
+        "INSERT INTO exercises (set_id, name, image_slug, duration, description, position, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      ).run(
+        setId,
+        "Exercise No Image",
+        null,
+        30,
+        "Description",
+        0,
+        timestamp,
+        timestamp,
+      );
 
-      const response = await fetch(`http://localhost:3000/admin/sets/${setId}/export`);
+      const response = await fetch(
+        `http://localhost:3000/admin/sets/${setId}/export`,
+      );
       assert.strictEqual(response.status, 200);
 
       const data = await response.json();
@@ -221,9 +250,9 @@ describe("API Tests", () => {
             imageSlug: "ex1",
             duration: 30,
             description: "Test exercise",
-            position: 0
-          }
-        ]
+            position: 0,
+          },
+        ],
       };
 
       // Create form data with JSON file
@@ -235,16 +264,16 @@ describe("API Tests", () => {
         `Content-Type: application/json`,
         ``,
         fileContent,
-        `--${boundary}--`
+        `--${boundary}--`,
       ].join("\r\n");
 
       const response = await fetch("http://localhost:3000/admin/sets/import", {
         method: "POST",
         headers: {
-          "Content-Type": `multipart/form-data; boundary=${boundary}`
+          "Content-Type": `multipart/form-data; boundary=${boundary}`,
         },
         body: body,
-        redirect: "manual"
+        redirect: "manual",
       });
 
       // Should redirect to admin dashboard
@@ -255,7 +284,9 @@ describe("API Tests", () => {
       assert.ok(location.includes("imported=true"));
 
       // Verify in database
-      const set = db.prepare("SELECT * FROM exercise_sets WHERE slug = ?").get("test-import");
+      const set = db
+        .prepare("SELECT * FROM exercise_sets WHERE slug = ?")
+        .get("test-import");
       assert.ok(set);
 
       // Cleanup
@@ -266,7 +297,7 @@ describe("API Tests", () => {
       // Create existing set with slug 'conflict-test'
       const timestamp = new Date().toISOString();
       db.prepare(
-        "INSERT INTO exercise_sets (name, slug, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO exercise_sets (name, slug, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
       ).run("Existing Set", "conflict-test", "", timestamp, timestamp);
 
       // Import another with same slug
@@ -278,9 +309,9 @@ describe("API Tests", () => {
             name: "Exercise 1",
             duration: 30,
             description: "Test exercise",
-            position: 0
-          }
-        ]
+            position: 0,
+          },
+        ],
       };
 
       const boundary = "----WebKitFormBoundary" + Math.random().toString(36);
@@ -291,16 +322,16 @@ describe("API Tests", () => {
         `Content-Type: application/json`,
         ``,
         fileContent,
-        `--${boundary}--`
+        `--${boundary}--`,
       ].join("\r\n");
 
       const response = await fetch("http://localhost:3000/admin/sets/import", {
         method: "POST",
         headers: {
-          "Content-Type": `multipart/form-data; boundary=${boundary}`
+          "Content-Type": `multipart/form-data; boundary=${boundary}`,
         },
         body: body,
-        redirect: "manual"
+        redirect: "manual",
       });
 
       assert.strictEqual(response.status, 302);
@@ -309,16 +340,21 @@ describe("API Tests", () => {
       assert.ok(location.includes("conflict-test-1"));
 
       // Verify new one is 'conflict-test-1'
-      const newSet = db.prepare("SELECT * FROM exercise_sets WHERE slug = ?").get("conflict-test-1");
+      const newSet = db
+        .prepare("SELECT * FROM exercise_sets WHERE slug = ?")
+        .get("conflict-test-1");
       assert.ok(newSet);
 
       // Cleanup
-      db.prepare("DELETE FROM exercise_sets WHERE slug IN (?, ?)").run("conflict-test", "conflict-test-1");
+      db.prepare("DELETE FROM exercise_sets WHERE slug IN (?, ?)").run(
+        "conflict-test",
+        "conflict-test-1",
+      );
     });
 
     it("should return 400 for missing required fields", async () => {
       const json = {
-        name: "Test Import"
+        name: "Test Import",
         // Missing slug and exercises
       };
 
@@ -330,15 +366,15 @@ describe("API Tests", () => {
         `Content-Type: application/json`,
         ``,
         fileContent,
-        `--${boundary}--`
+        `--${boundary}--`,
       ].join("\r\n");
 
       const response = await fetch("http://localhost:3000/admin/sets/import", {
         method: "POST",
         headers: {
-          "Content-Type": `multipart/form-data; boundary=${boundary}`
+          "Content-Type": `multipart/form-data; boundary=${boundary}`,
         },
-        body: body
+        body: body,
       });
 
       assert.strictEqual(response.status, 400);
@@ -353,15 +389,15 @@ describe("API Tests", () => {
         `Content-Type: application/json`,
         ``,
         fileContent,
-        `--${boundary}--`
+        `--${boundary}--`,
       ].join("\r\n");
 
       const response = await fetch("http://localhost:3000/admin/sets/import", {
         method: "POST",
         headers: {
-          "Content-Type": `multipart/form-data; boundary=${boundary}`
+          "Content-Type": `multipart/form-data; boundary=${boundary}`,
         },
-        body: body
+        body: body,
       });
 
       assert.strictEqual(response.status, 400);
@@ -376,9 +412,9 @@ describe("API Tests", () => {
             name: "Exercise 1",
             duration: 99999, // Invalid: too large
             description: "Test exercise",
-            position: 0
-          }
-        ]
+            position: 0,
+          },
+        ],
       };
 
       const boundary = "----WebKitFormBoundary" + Math.random().toString(36);
@@ -389,15 +425,15 @@ describe("API Tests", () => {
         `Content-Type: application/json`,
         ``,
         fileContent,
-        `--${boundary}--`
+        `--${boundary}--`,
       ].join("\r\n");
 
       const response = await fetch("http://localhost:3000/admin/sets/import", {
         method: "POST",
         headers: {
-          "Content-Type": `multipart/form-data; boundary=${boundary}`
+          "Content-Type": `multipart/form-data; boundary=${boundary}`,
         },
-        body: body
+        body: body,
       });
 
       assert.strictEqual(response.status, 400);
@@ -412,9 +448,9 @@ describe("API Tests", () => {
             name: "Exercise 1",
             duration: 30,
             description: "Test exercise without image",
-            position: 0
-          }
-        ]
+            position: 0,
+          },
+        ],
       };
 
       const boundary = "----WebKitFormBoundary" + Math.random().toString(36);
@@ -425,30 +461,36 @@ describe("API Tests", () => {
         `Content-Type: application/json`,
         ``,
         fileContent,
-        `--${boundary}--`
+        `--${boundary}--`,
       ].join("\r\n");
 
       const response = await fetch("http://localhost:3000/admin/sets/import", {
         method: "POST",
         headers: {
-          "Content-Type": `multipart/form-data; boundary=${boundary}`
+          "Content-Type": `multipart/form-data; boundary=${boundary}`,
         },
         body: body,
-        redirect: "manual"
+        redirect: "manual",
       });
 
       assert.strictEqual(response.status, 302);
 
       // Verify in database
-      const set = db.prepare("SELECT * FROM exercise_sets WHERE slug = ?").get("test-import-no-images");
+      const set = db
+        .prepare("SELECT * FROM exercise_sets WHERE slug = ?")
+        .get("test-import-no-images");
       assert.ok(set);
 
-      const exercises = db.prepare("SELECT * FROM exercises WHERE set_id = ?").all((set as any).id);
+      const exercises = db
+        .prepare("SELECT * FROM exercises WHERE set_id = ?")
+        .all((set as any).id);
       assert.strictEqual(exercises.length, 1);
       assert.strictEqual((exercises[0] as any).image_slug, null);
 
       // Cleanup
-      db.prepare("DELETE FROM exercise_sets WHERE slug = ?").run("test-import-no-images");
+      db.prepare("DELETE FROM exercise_sets WHERE slug = ?").run(
+        "test-import-no-images",
+      );
     });
   });
 });

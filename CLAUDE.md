@@ -18,6 +18,7 @@ X-ercise is a web application for timing sets of exercises and tracking when the
 ## Commands
 
 ### Development
+
 ```bash
 npm start              # Start server (runs on http://localhost:3000)
 npm run typecheck      # Run TypeScript type checking
@@ -26,6 +27,7 @@ npm run format         # Format code with Prettier
 ```
 
 ### Testing Specific Scenarios
+
 ```bash
 # Use in-memory database
 DATABASE_PATH=:memory: npm start
@@ -48,6 +50,7 @@ The application uses three main tables:
 3. **completions**: Tracks when users complete sets (set_slug, username, completed_at)
 
 Key constraints:
+
 - `exercise_sets.slug` must be unique
 - `exercises.set_id` has cascade delete (deleting set deletes exercises)
 - Indexed on: `exercise_sets.slug`, `exercises.set_id`, `exercises.position`
@@ -55,6 +58,7 @@ Key constraints:
 ### Database Configuration
 
 The database path is determined by `getDatabasePath()` in src/db.ts:
+
 - Default: `data/x-ercise.db` (production)
 - Can be overridden with `DATABASE_PATH` environment variable
 - Tests automatically use `:memory:` database (set in package.json)
@@ -79,11 +83,13 @@ The database path is determined by `getDatabasePath()` in src/db.ts:
 ### Data Flow Patterns
 
 **Home Page Query Optimization**: The home page uses a two-query approach to avoid N+1 problems:
+
 1. Fetch all sets with exercise counts via LEFT JOIN
 2. Fetch all completions for user in single query, build Map for O(1) lookup
 3. Map over sets and enrich with completion data from the Map
 
 **Set Management**: Creating/updating sets is transactional:
+
 1. Insert/update set record
 2. Delete all existing exercises (on update)
 3. Insert all exercises with position ordering
@@ -92,6 +98,7 @@ The database path is determined by `getDatabasePath()` in src/db.ts:
 ### File Upload System
 
 Exercise images are handled by src/middleware/upload.ts:
+
 - Uses multer with disk storage
 - Uploads to `public/images/exercises/`
 - Two-step process: temp filename → rename to imageSlug
@@ -103,6 +110,7 @@ Exercise images are handled by src/middleware/upload.ts:
 ### Type System
 
 All types are defined in src/types.ts. Key distinction:
+
 - **Row types** (e.g., `ExerciseSetRow`, `ExerciseRow`): Database schema with all fields including IDs and timestamps
 - **Interface types** (e.g., `ExerciseSet`, `Exercise`): Domain models used in views and API responses
 - Transformation happens at route layer when querying database
@@ -110,12 +118,14 @@ All types are defined in src/types.ts. Key distinction:
 ## Testing
 
 Tests use Node's built-in test runner with:
+
 - In-memory database (`:memory:`)
 - Test data seeded via `seedTestData()` helper
 - HTTP requests to running server
 - Cleanup in `after()` hook (close db and server)
 
 When writing tests:
+
 - Use `describe()` and `it()` from `node:test`
 - Import `assert` from `node:assert`
 - Seed test data before running tests

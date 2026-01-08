@@ -76,7 +76,9 @@
   cursor: pointer;
   font-family: var(--font-family);
   text-decoration: none;
-  transition: background-color 0.2s, opacity 0.2s ease;
+  transition:
+    background-color 0.2s,
+    opacity 0.2s ease;
 }
 
 .btn:hover {

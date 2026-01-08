@@ -60,10 +60,13 @@ const jsonFileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback,
 ) => {
-  if (file.mimetype === 'application/json' || file.originalname.endsWith('.json')) {
+  if (
+    file.mimetype === "application/json" ||
+    file.originalname.endsWith(".json")
+  ) {
     cb(null, true);
   } else {
-    cb(new Error('Only JSON files are allowed'));
+    cb(new Error("Only JSON files are allowed"));
   }
 };
 
