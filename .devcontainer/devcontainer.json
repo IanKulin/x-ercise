@@ -52,6 +52,9 @@
   // Use node user (non-root)
   "remoteUser": "node",
 
+  // Set a specific container name
+  "runArgs": ["--name", "x-ercise-dev"],
+
   // Features to add
   "features": {
     "ghcr.io/devcontainers/features/git:1": {

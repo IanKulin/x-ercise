@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sqlite3:*)",
+      "Bash(npm test:*)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(node src/server.js:*)",
+      "Bash(node:*)",
+      "mcp__playwright__playwright_navigate",
+      "mcp__playwright__playwright_screenshot",
+      "mcp__playwright__playwright_click",
+      "mcp__playwright__playwright_close",
+      "Bash(lsof:*)",
+      "Bash(cat:*)",
+      "Bash(npm info:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm start)",
+      "Bash(npm run build:*)",
+      "Bash(python3:*)",
+      "Bash(timeout 3 npm start)",
+      "Bash(timeout 3 DATABASE_PATH=/tmp/test-custom.db npm start:*)",
+      "Bash(DATABASE_PATH=/tmp/test-custom.db timeout 3 node:*)",
+      "Bash(timeout 30 npm start)",
+      "mcp__playwright__playwright_evaluate",
+      "mcp__playwright__playwright_console_logs",
+      "mcp__playwright__playwright_get_visible_html",
+      "mcp__playwright__playwright_fill",
+      "Bash(mkdir:*)",
+      "Bash(docker build:*)"
+    ]
+  }
+}

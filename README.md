@@ -13,4 +13,12 @@ This is a web app for timing 'sets' of exercises and keeping track of when they 
 - **Admin Dashboard**: Manage all your exercise sets from a centralized admin interface
 - **User-Specific Tracking**: Track completions by username to support multiple users
 
+## Development
+
+This codebase is intended to be edited from inside a VSCode dev container. To run a Claude Code session inside the container, use the following command:
+
+```bash
+docker exec -it -w /workspaces/x-ercise x-ercise-dev /bin/sh
+```
+
 
