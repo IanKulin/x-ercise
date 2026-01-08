@@ -42,7 +42,7 @@
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/node/.ssh,type=bind,readonly"
   ],
 
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "npm install && npm rebuild better-sqlite3",
   "remoteUser": "node",
   "runArgs": ["--name", "x-ercise-dev"],
 
