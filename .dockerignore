@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Development files
+.git/
+.gitignore
+.vscode/
+.claude/
+
+# Database files (will be volume-mounted)
+data/*.db
+data/*.db-*
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+test/
+
+# Documentation (optional - remove if you want these in the image)
+README.md
+CLAUDE.md
+LICENSE
