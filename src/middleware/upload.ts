@@ -33,7 +33,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (
-  req: any,
+  req: Express.Request,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback,
 ) => {
@@ -56,7 +56,7 @@ export const upload = multer({
 
 // Multer instance for JSON imports
 const jsonFileFilter = (
-  req: any,
+  req: Express.Request,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback,
 ) => {

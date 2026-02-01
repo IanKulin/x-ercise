@@ -1,7 +1,6 @@
 import express, { type Request, type Response, type Router } from "express";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import db from "../db.ts";
 import {
   upload,
@@ -17,9 +16,6 @@ import type {
   CreateSetRequest,
 } from "../types.ts";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 /**
  * Validates a slug format (lowercase alphanumeric with hyphens)
  */
@@ -30,26 +26,30 @@ function isValidSlug(slug: string): boolean {
 /**
  * Validates import data structure
  */
-function validateImportData(data: any): { valid: boolean; error?: string } {
+function validateImportData(data: unknown): { valid: boolean; error?: string } {
   // Check required fields
   if (!data || typeof data !== "object") {
     return { valid: false, error: "Data must be an object" };
   }
 
-  if (!data.name || typeof data.name !== "string") {
+  // Type assertion after checking it's an object
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const obj = data as any;
+
+  if (!obj.name || typeof obj.name !== "string") {
     return { valid: false, error: 'Missing or invalid "name"' };
   }
 
-  if (!data.slug || typeof data.slug !== "string") {
+  if (!obj.slug || typeof obj.slug !== "string") {
     return { valid: false, error: 'Missing or invalid "slug"' };
   }
 
-  if (!Array.isArray(data.exercises) || data.exercises.length === 0) {
+  if (!Array.isArray(obj.exercises) || obj.exercises.length === 0) {
     return { valid: false, error: 'Missing or empty "exercises" array' };
   }
 
   // Validate slug format
-  if (!isValidSlug(data.slug)) {
+  if (!isValidSlug(obj.slug)) {
     return {
       valid: false,
       error: "Slug must be lowercase alphanumeric with hyphens",
@@ -57,8 +57,8 @@ function validateImportData(data: any): { valid: boolean; error?: string } {
   }
 
   // Validate each exercise
-  for (let i = 0; i < data.exercises.length; i++) {
-    const ex = data.exercises[i];
+  for (let i = 0; i < obj.exercises.length; i++) {
+    const ex = obj.exercises[i];
 
     if (!ex.name || typeof ex.name !== "string") {
       return {
@@ -305,8 +305,13 @@ export default (logger: Logger): Router => {
         id: setId,
         message: "Set created successfully",
       });
-    } catch (error: any) {
-      if (error.code === "SQLITE_CONSTRAINT") {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "SQLITE_CONSTRAINT"
+      ) {
         return res
           .status(400)
           .json({ error: "A set with this slug already exists" });
@@ -427,8 +432,13 @@ export default (logger: Logger): Router => {
         success: true,
         message: "Set updated successfully",
       });
-    } catch (error: any) {
-      if (error.code === "SQLITE_CONSTRAINT") {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "SQLITE_CONSTRAINT"
+      ) {
         return res
           .status(400)
           .json({ error: "A set with this slug already exists" });
@@ -502,7 +512,7 @@ export default (logger: Logger): Router => {
 
         try {
           importData = JSON.parse(fileContent);
-        } catch (parseError) {
+        } catch {
           fs.unlinkSync(req.file.path); // Clean up temp file
           return res.status(400).send("Invalid JSON file");
         }
@@ -532,7 +542,7 @@ export default (logger: Logger): Router => {
         const timestamp = new Date().toISOString();
 
         // Insert using transaction
-        const result = db.transaction(() => {
+        db.transaction(() => {
           const setResult = db
             .prepare(
               `
@@ -571,12 +581,14 @@ export default (logger: Logger): Router => {
 
         // Redirect with success message
         res.redirect(`/admin?imported=true&slug=${finalSlug}`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error("Import error:", error);
         if (req.file && fs.existsSync(req.file.path)) {
           fs.unlinkSync(req.file.path);
         }
-        res.status(500).send("Import failed: " + error.message);
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        res.status(500).send("Import failed: " + message);
       }
     },
   );

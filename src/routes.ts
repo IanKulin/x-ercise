@@ -134,7 +134,14 @@ export default (logger: Logger): Router => {
   // Completion endpoint
   router.post(
     "/completions",
-    (req: Request<{}, {}, CompletionRequestBody>, res: Response) => {
+    (
+      req: Request<
+        Record<string, never>,
+        Record<string, never>,
+        CompletionRequestBody
+      >,
+      res: Response,
+    ) => {
       const { set_slug, username } = req.body;
 
       if (!set_slug) {
