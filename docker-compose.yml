@@ -1,5 +1,6 @@
 services:
   x-ercise:
+    image: ghcr.io/iankulin/x-ercise
     ports:
       - "3000:3000"
     volumes:
